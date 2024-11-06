@@ -5,6 +5,7 @@ import com.undefined.api.extension.string.miniMessage
 import com.undefined.api.scheduler.TimeUnit
 import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.repeatingTask
+import com.undefined.soulbound.SoulBound
 import com.undefined.soulbound.game.*
 import com.undefined.soulbound.util.updateColor
 import net.kyori.adventure.text.Component
@@ -47,15 +48,14 @@ class SoulboundCommand {
                         }
                         return@delay
                     } else {
-                        Bukkit.broadcastMessage("Start")
                         Bukkit.getOnlinePlayers().giveSoulBounds()
                         Bukkit.getOnlinePlayers().forEach {
                             it.showTitle(Title.title("<gray>You will have...".miniMessage(), Component.empty()))
                         }
                         var amount = 0
-                        repeatingTask(5, 5, 20) {
+                        repeatingTask(30, 5, 20) {
                             amount++
-                            if (amount == 18) {
+                            if (amount == 20) {
                                 Bukkit.getOnlinePlayers().forEach {
                                     val soul = it.getSoulData() ?: return@forEach
                                     it.showTitle(Title.title("<gray>You have ${getColor(soul.lives)}${soul.lives} <green>lives.".miniMessage(), Component.empty()))
@@ -99,6 +99,18 @@ class SoulboundCommand {
                 }
                 player.sendRichMessage("<green>${target.name} has ${getColor(soulData.lives)}${soulData.lives} <green>lives.")
                 return@addTargetExecute false
+            }
+
+        main.addSubCommand("reset")
+            .addExecutePlayer {
+                val player = player ?: return@addExecutePlayer false
+
+                SoulBound.WORLD.persistentDataContainer.keys.forEach { SoulBound.WORLD.persistentDataContainer.remove(it) }
+                SoulManager.souls.clear()
+
+                player.sendRichMessage("<red>Soul bound have been cleared")
+                Bukkit.getOnlinePlayers().forEach { it.updateScoreboardStuff() }
+                return@addExecutePlayer false
             }
 
         UndefinedCommand("gift")

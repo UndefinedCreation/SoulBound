@@ -47,5 +47,5 @@ fun Player.getSoulData(): SoulData? =
 
 fun Player.getSoulMate(): Player? {
     val soulData = getSoulData() ?: return null
-    return if (uniqueId == soulData.player1) player else Bukkit.getPlayer(soulData.player2) ?: return null
+    return if (uniqueId == soulData.player1) Bukkit.getPlayer(soulData.player2) else Bukkit.getPlayer(soulData.player1)
 }

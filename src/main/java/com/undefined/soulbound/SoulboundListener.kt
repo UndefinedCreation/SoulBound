@@ -1,6 +1,7 @@
 package com.undefined.soulbound
 
 import com.undefined.api.event.event
+import com.undefined.api.scheduler.delay
 import com.undefined.soulbound.game.getSoulData
 import com.undefined.soulbound.game.getSoulMate
 import com.undefined.soulbound.util.updateColor
@@ -60,10 +61,5 @@ class SoulboundListener {
             val soulmate = player.getSoulMate() ?: return@event
             player.health = soulmate.health
         }
-
-//        event<EntityAirChangeEvent> {
-//            if (entity !is Player) return@event
-//            println(amount)
-//        }
     }
 }

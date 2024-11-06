@@ -17,7 +17,7 @@ fun Player.updateColor() {
         2 -> TabManager.colorTeams[ChatColor.YELLOW]!!
         3 -> TabManager.colorTeams[ChatColor.GREEN]!!
         4, 5, 6 -> TabManager.colorTeams[ChatColor.DARK_GREEN]!!
-        else -> null
+        else -> TabManager.colorTeams[ChatColor.GRAY]
     } ?: return
     team.addPlayer(this)
 }
