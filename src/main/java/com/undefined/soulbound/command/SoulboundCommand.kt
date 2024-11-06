@@ -7,7 +7,7 @@ import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.repeatingTask
 import com.undefined.soulbound.SoulBound
 import com.undefined.soulbound.game.*
-import com.undefined.soulbound.util.updateColor
+import com.undefined.soulbound.util.updateScoreboardStuff
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
@@ -60,11 +60,11 @@ class SoulboundCommand {
                                     val soul = it.getSoulData() ?: return@forEach
                                     it.showTitle(Title.title("<gray>You have ${getColor(soul.lives)}${soul.lives} <green>lives.".miniMessage(), Component.empty()))
                                     it.playSound(it, Sound.BLOCK_END_PORTAL_FRAME_FILL, 1.0F, 1.0F)
-                                    it.updateColor()
+                                    it.updateScoreboardStuff()
                                 }
                             } else {
                                 for (player in Bukkit.getOnlinePlayers()) {
-                                    val random = Random.nextInt(2,6)
+                                    val random = Random.nextInt(2, 6)
                                     player.showTitle(Title.title("${getColor(random)}$random".miniMessage(), Component.empty()))
                                     player.playSound(player, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
                                 }
