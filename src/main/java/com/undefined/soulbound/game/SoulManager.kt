@@ -3,7 +3,6 @@ package com.undefined.soulbound.game
 import com.undefined.soulbound.SoulBound
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
-import org.bukkit.OfflinePlayer
 import org.bukkit.World
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
@@ -11,6 +10,7 @@ import java.util.*
 
 object SoulManager {
     var souls: MutableList<SoulData> = mutableListOf()
+    var boogieman: UUID? = null
 }
 
 fun Collection<Player>.giveSoulBounds() {
@@ -22,12 +22,14 @@ fun Collection<Player>.giveSoulBounds() {
         player1.health = 20.0
         player2.health = 20.0
 
-        val lives = Random().nextInt(3,6)
+        val lives = Random().nextInt(4,6)
         val soulData = SoulData(player1.uniqueId, player2.uniqueId, lives)
 
         SoulManager.souls.add(soulData)
     }
 }
+
+fun Collection<SoulData>.assignBoogieman(): SoulData? = this.filter { it.lives > 1 }.randomOrNull()
 
 fun World.addSoulData(soul: SoulData) {
     persistentDataContainer[NamespacedKey(SoulBound.INSTANCE, soul.key.toString()), PersistentDataType.STRING] = soul.toString()

@@ -6,16 +6,21 @@ import com.undefined.api.scheduler.TimeUnit
 import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.repeatingTask
 import com.undefined.soulbound.SoulBound
+import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.*
+import com.undefined.soulbound.util.TabManager
 import com.undefined.soulbound.util.updateScoreboardStuff
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.Sound
 import org.bukkit.entity.Player
+import org.bukkit.scheduler.BukkitTask
 import kotlin.random.Random
 
 class SoulboundCommand {
+
+    var task: BukkitTask? = null
 
     init {
         val main = UndefinedCommand("soulbound", permission = "undefined.event.soulbound")
@@ -30,7 +35,9 @@ class SoulboundCommand {
                     }
                 }
 
-                delay(2, TimeUnit.HOURS) {
+                task = delay(2, TimeUnit.HOURS) {
+                    GameEndEvent().callEvent()
+
                     Bukkit.getServerTickManager().isFrozen = true
                     Bukkit.getOnlinePlayers().forEach {
                         it.player?.kick(Component.text("Session has ended!"))
@@ -40,12 +47,9 @@ class SoulboundCommand {
 
                 Bukkit.getServerTickManager().isFrozen = false
 
-                delay(10, TimeUnit.SECONDS) {
-                    Bukkit.broadcastMessage(SoulManager.souls.isNotEmpty().toString())
+                delay(5*60*20) {
                     if (SoulManager.souls.isNotEmpty()) {
-                        delay(2, TimeUnit.MINUTES) {
-                            // TODO("BOOGIE MAN!!!")
-                        }
+                        assignBoogieman()
                         return@delay
                     } else {
                         Bukkit.getOnlinePlayers().giveSoulBounds()
@@ -58,7 +62,7 @@ class SoulboundCommand {
                             if (amount == 20) {
                                 Bukkit.getOnlinePlayers().forEach {
                                     val soul = it.getSoulData() ?: return@forEach
-                                    it.showTitle(Title.title("<gray>You have ${getColor(soul.lives)}${soul.lives} <green>lives.".miniMessage(), Component.empty()))
+                                    it.showTitle(Title.title("<gray>You have ${getColor(soul.lives)}${soul.lives} <gray>lives.".miniMessage(), Component.empty()))
                                     it.playSound(it, Sound.BLOCK_END_PORTAL_FRAME_FILL, 1.0F, 1.0F)
                                     it.updateScoreboardStuff()
                                 }
@@ -70,6 +74,9 @@ class SoulboundCommand {
                                 }
                             }
 
+                        }
+                        delay(5*60*20) {
+                            assignBoogieman()
                         }
 
                     }
@@ -89,7 +96,7 @@ class SoulboundCommand {
                 return@addTargetExecute false
             }
 
-        main.addSubCommand("setlives") // TODO
+        main.addSubCommand("addLife")
             .addPlayerSubCommand()
             .addTargetExecute {
                 val player: Player = sender as? Player ?: return@addTargetExecute false
@@ -97,7 +104,41 @@ class SoulboundCommand {
                     player.sendRichMessage("<red>Invalid player!")
                     return@addTargetExecute false
                 }
-                player.sendRichMessage("<green>${target.name} has ${getColor(soulData.lives)}${soulData.lives} <green>lives.")
+                player.sendRichMessage("<green>Life has been added!")
+                soulData.lives++
+                target.updateScoreboardStuff()
+                target.getSoulMate()?.updateScoreboardStuff()
+                return@addTargetExecute false
+            }
+
+        main.addSubCommand("end")
+            .addExecutePlayer {
+
+                GameEndEvent().callEvent()
+
+                Bukkit.getServerTickManager().isFrozen = true
+                Bukkit.getOnlinePlayers().forEach {
+                    it.player?.kick(Component.text("Session has ended!"))
+                }
+                Bukkit.setWhitelist(true)
+
+                task?.cancel()
+
+                return@addExecutePlayer false
+            }
+
+        main.addSubCommand("removeLife")
+            .addPlayerSubCommand()
+            .addTargetExecute {
+                val player: Player = sender as? Player ?: return@addTargetExecute false
+                val soulData: SoulData = target.getSoulData() ?: run {
+                    player.sendRichMessage("<red>Invalid player!")
+                    return@addTargetExecute false
+                }
+                player.sendRichMessage("<green>Life has been removed!")
+                soulData.lives--
+                target.updateScoreboardStuff()
+                target.getSoulMate()?.updateScoreboardStuff()
                 return@addTargetExecute false
             }
 
@@ -110,6 +151,19 @@ class SoulboundCommand {
 
                 player.sendRichMessage("<red>Soul bound have been cleared")
                 Bukkit.getOnlinePlayers().forEach { it.updateScoreboardStuff() }
+
+                task?.cancel()
+
+                return@addExecutePlayer false
+            }
+
+        main.addSubCommand("boogieman")
+            .addExecutePlayer {
+                SoulManager.boogieman = null
+                Bukkit.getOnlinePlayers().forEach {
+                    it.showTitle(Title.title("<Green>Boogieman has killed!".miniMessage(), "<green>Was cleared by admin".miniMessage()))
+                    it.playSound(it, Sound.BLOCK_ANVIL_LAND, 1.0F, 1.0F)
+                }
                 return@addExecutePlayer false
             }
 
@@ -118,23 +172,69 @@ class SoulboundCommand {
             .addTargetExecute {
                 val player: Player = sender as? Player ?: return@addTargetExecute false
                 val soulData: SoulData = player.getSoulData() ?: return@addTargetExecute false
-                val targetSoulData: SoulData = player.getSoulData() ?: run {
+                val targetSoulData: SoulData = target.getSoulData() ?: run {
                     player.sendRichMessage("<red>That player is invalid!")
                     return@addTargetExecute false
                 }
-                val soulmate = player.getSoulMate()
+                if (soulData.lives < targetSoulData.lives) {
+                    player.sendRichMessage("<red>You cannot gift to somebody with more lives than yourself!")
+                    return@addTargetExecute false
+                }
                 if (soulData.lives < 2) {
                     player.sendRichMessage("<red>You don't have enough lives to be able to gift any!")
                     return@addTargetExecute false
                 }
+                val soulmate = player.getSoulMate()
                 if (soulmate != null && target.uniqueId == soulmate.uniqueId) {
                     player.sendRichMessage("<red>You cannot give lives to your soulmate!")
                     return@addTargetExecute false
                 }
                 soulData.lives -= 1
                 targetSoulData.lives += 1
+                player.sendRichMessage("<green>You successfully gifted one life to ${target.name}")
+                target.sendRichMessage("<green>You have been gifted one life by ${player.name}")
+                player.updateScoreboardStuff()
+                target.updateScoreboardStuff()
                 return@addTargetExecute false
             }
+    }
+
+    fun assignBoogieman() {
+        val data = SoulManager.souls.assignBoogieman() ?: return
+        val player1 = Bukkit.getPlayer(data.player1) ?: return
+        val player2 = Bukkit.getPlayer(data.player2) ?: return
+        for (player in Bukkit.getOnlinePlayers()) {
+            Bukkit.getOnlinePlayers().forEach {
+                it.showTitle(Title.title("<yellow>Boogieman is beeing chosen".miniMessage(), "".miniMessage()))
+                it.playSound(player, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
+            }
+            delay(20) {
+                Bukkit.getOnlinePlayers().forEach {
+                    it.showTitle(Title.title("<yellow>Boogieman is beeing chosen.".miniMessage(), "".miniMessage()))
+                    player.playSound(player, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
+                }
+                delay(20) {
+                    Bukkit.getOnlinePlayers().forEach {
+                        it.showTitle(Title.title("<yellow>Boogieman is beeing chosen..".miniMessage(), "".miniMessage()))
+                        player.playSound(player, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
+                    }
+                    delay(20) {
+                        Bukkit.getOnlinePlayers().forEach {
+                            it.showTitle(Title.title("<yellow>Boogieman is beeing chosen...".miniMessage(), "".miniMessage()))
+                            player.playSound(player, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
+                        }
+                        delay(20) {
+                            Bukkit.getOnlinePlayers().forEach {
+                                it.playSound(player, Sound.BLOCK_END_PORTAL_SPAWN, 1.0F, 1.0F)
+                                if (it.uniqueId != player1.uniqueId && it.uniqueId != player2.uniqueId) return@forEach it.showTitle(Title.title("<green>You are innocent!".miniMessage(), "".miniMessage()))
+                                it.showTitle(Title.title("<red>You are the boogieman!".miniMessage(), "".miniMessage()))
+                                SoulManager.boogieman = data.key
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun getColor(int: Int): String = when (int) {

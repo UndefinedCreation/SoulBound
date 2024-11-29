@@ -9,4 +9,8 @@ object SoulNamespace {
         val LIVES = NamespacedKey("soulbound", "LIVES_PLAYER")
     }
 
+    object ITEM {
+        val TNT = NamespacedKey("soulbound", "TNT")
+    }
+
 }
