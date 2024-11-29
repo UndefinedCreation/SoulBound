@@ -1,3 +1,5 @@
+import com.undefinedcreation.runServer.ServerType
+
 plugins {
     java
     kotlin("jvm") version "1.9.22"
@@ -46,7 +48,7 @@ tasks {
 
     runServer {
         mcVersion(minecraftVersion)
-
+        serverType(ServerType.PAPERMC)
         acceptMojangEula(true)
     }
 }

@@ -156,5 +156,15 @@ class SoulboundListener {
                 }
             }
         }
+
+        event<PrepareItemEnchantEvent> {
+            offers?.forEachIndexed { i, _ -> offers[i] = offers[i].apply { this?.enchantmentLevel = 1 } }
+        }
+
+        event<EnchantItemEvent> {
+            enchantsToAdd.forEach { enchantment, _ ->
+                enchantsToAdd[enchantment] = 1
+            }
+        }
     }
 }
