@@ -47,39 +47,40 @@ class SoulboundCommand {
 
                 Bukkit.getServerTickManager().isFrozen = false
 
-                delay(5*60*20) {
-                    if (SoulManager.souls.isNotEmpty()) {
-                        assignBoogieman()
-                        return@delay
-                    } else {
-                        Bukkit.getOnlinePlayers().giveSoulBounds()
-                        Bukkit.getOnlinePlayers().forEach {
-                            it.showTitle(Title.title("<gray>You will have...".miniMessage(), Component.empty()))
-                        }
-                        var amount = 0
-                        repeatingTask(30, 5, 20) {
-                            amount++
-                            if (amount == 20) {
-                                Bukkit.getOnlinePlayers().forEach {
-                                    val soul = it.getSoulData() ?: return@forEach
-                                    it.showTitle(Title.title("<gray>You have ${getColor(soul.lives)}${soul.lives} <gray>lives.".miniMessage(), Component.empty()))
-                                    it.playSound(it, Sound.BLOCK_END_PORTAL_FRAME_FILL, 1.0F, 1.0F)
-                                    it.updateScoreboardStuff()
-                                }
-                            } else {
-                                for (player in Bukkit.getOnlinePlayers()) {
-                                    val random = Random.nextInt(2, 6)
-                                    player.showTitle(Title.title("${getColor(random)}$random".miniMessage(), Component.empty()))
-                                    player.playSound(player, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
-                                }
+                if (SoulManager.souls.isNotEmpty()) {
+                    assignBoogieman()
+                    return@addExecutePlayer false
+                } else {
+                    println("1")
+                    Bukkit.getOnlinePlayers().giveSoulBounds()
+                    println("2")
+                    Bukkit.getOnlinePlayers().forEach {
+                        println("3")
+                        it.showTitle(Title.title("<gray>You will have...".miniMessage(), Component.empty()))
+                    }
+                    var amount = 0
+                    repeatingTask(30, 5, 20) {
+                        amount++
+                        if (amount == 20) {
+                            Bukkit.getOnlinePlayers().forEach {
+                                val soul = it.getSoulData() ?: return@forEach
+                                it.showTitle(Title.title("<gray>You have ${getColor(soul.lives)}${soul.lives} <gray>lives.".miniMessage(), Component.empty()))
+                                it.playSound(it, Sound.BLOCK_END_PORTAL_FRAME_FILL, 1.0F, 1.0F)
+                                it.updateScoreboardStuff()
                             }
-
-                        }
-                        delay(5*60*20) {
-                            assignBoogieman()
+                        } else {
+                            for (player in Bukkit.getOnlinePlayers()) {
+                                val random = Random.nextInt(2, 6)
+                                player.showTitle(Title.title("${getColor(random)}$random".miniMessage(), Component.empty()))
+                                player.playSound(player, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
+                            }
                         }
 
                     }
+                    delay(5*60*20) {
+                        assignBoogieman()
+                    }
+
                 }
                 return@addExecutePlayer false
             }

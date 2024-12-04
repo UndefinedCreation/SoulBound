@@ -131,6 +131,12 @@ class SoulboundListener {
             if (!player.hasPermission("chat")) isCancelled = true
         }
 
+        event<EnchantItemEvent> {
+            if (this.expLevelCost != 2 && this.expLevelCost != 1) {
+                isCancelled = true
+            }
+        }
+
         event<EntityDeathEvent> {
             if (entity is Player) {
                 val killer = entity.killer ?: return@event
@@ -157,14 +163,6 @@ class SoulboundListener {
             }
         }
 
-        event<PrepareItemEnchantEvent> {
-            offers?.forEachIndexed { i, _ -> offers[i] = offers[i].apply { this?.enchantmentLevel = 1 } }
-        }
 
-        event<EnchantItemEvent> {
-            enchantsToAdd.forEach { enchantment, _ ->
-                enchantsToAdd[enchantment] = 1
-            }
-        }
     }
 }
