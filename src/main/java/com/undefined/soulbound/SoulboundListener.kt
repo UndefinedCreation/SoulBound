@@ -3,6 +3,8 @@ package com.undefined.soulbound
 import com.undefined.api.event.event
 import com.undefined.api.extension.string.miniMessage
 import com.undefined.api.scheduler.delay
+import com.undefined.api.sendLog
+import com.undefined.api.sendWarning
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.SoulManager
 import com.undefined.soulbound.game.getSoulData
@@ -15,18 +17,15 @@ import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.enchantments.Enchantment
-import org.bukkit.enchantments.EnchantmentOffer
 import org.bukkit.entity.Player
-import org.bukkit.event.EventHandler
 import org.bukkit.event.enchantment.EnchantItemEvent
-import org.bukkit.event.enchantment.PrepareItemEnchantEvent
 import org.bukkit.event.entity.EntityDamageEvent
+import org.bukkit.event.entity.EntityDamageEvent.DamageModifier
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.EntityRegainHealthEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.PrepareItemCraftEvent
-import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
 
@@ -36,7 +35,13 @@ class SoulboundListener {
             val player = entity as? Player ?: return@event
             val soulmate = player.getSoulMate() ?: return@event
 
-            if (damageSource.causingEntity == player) return@event
+            if (damageSource.causingEntity == player) {
+                sendWarning("This player has been damaged by itself, is that intentional?") // TODO remove this
+                DamageModifier.entries.forEach {
+                    setDamage(it, 0.0)
+                }
+                return@event
+            }
 
             soulmate.health = player.health
             val currentVelocity = soulmate.velocity.clone()

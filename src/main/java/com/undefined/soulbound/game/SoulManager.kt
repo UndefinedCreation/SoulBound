@@ -3,6 +3,7 @@ package com.undefined.soulbound.game
 import com.undefined.soulbound.SoulBound
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
+import org.bukkit.OfflinePlayer
 import org.bukkit.World
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
@@ -44,10 +45,10 @@ fun World.saveSoulData(souls: List<SoulData>) {
     SoulManager.souls.addAll(souls)
 }
 
-fun Player.getSoulData(): SoulData? =
+fun OfflinePlayer.getSoulData(): SoulData? =
     SoulManager.souls.filter { it.player1 == uniqueId || it.player2 == uniqueId }.getOrNull(0)
 
-fun Player.getSoulMate(): Player? {
+fun OfflinePlayer.getSoulMate(): Player? {
     val soulData = getSoulData() ?: return null
     return if (uniqueId == soulData.player1) Bukkit.getPlayer(soulData.player2) else Bukkit.getPlayer(soulData.player1)
 }

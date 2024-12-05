@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.ShapedRecipe
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scoreboard.Team
+import org.slf4j.Logger
 
 class SoulBound : JavaPlugin() {
 
@@ -20,13 +21,14 @@ class SoulBound : JavaPlugin() {
         lateinit var INSTANCE: SoulBound
         lateinit var UNDEFINED: UndefinedAPI
         lateinit var WORLD: World
+        lateinit var LOGGER: Logger
     }
-
 
     override fun onEnable() {
         INSTANCE = this
         UNDEFINED = UndefinedAPI(this)
         WORLD = Bukkit.getWorld("world")!!
+        LOGGER = slF4JLogger
 
         Bukkit.getServerTickManager().isFrozen = true
 

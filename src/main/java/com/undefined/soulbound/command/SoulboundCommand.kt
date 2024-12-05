@@ -5,16 +5,18 @@ import com.undefined.api.extension.string.miniMessage
 import com.undefined.api.scheduler.TimeUnit
 import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.repeatingTask
+import com.undefined.api.sendLog
 import com.undefined.soulbound.SoulBound
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.*
-import com.undefined.soulbound.util.TabManager
 import com.undefined.soulbound.util.updateScoreboardStuff
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
+import org.bukkit.OfflinePlayer
 import org.bukkit.Sound
 import org.bukkit.entity.Player
+import org.bukkit.persistence.PersistentDataType
 import org.bukkit.scheduler.BukkitTask
 import kotlin.random.Random
 
@@ -51,11 +53,8 @@ class SoulboundCommand {
                     assignBoogieman()
                     return@addExecutePlayer false
                 } else {
-                    println("1")
                     Bukkit.getOnlinePlayers().giveSoulBounds()
-                    println("2")
                     Bukkit.getOnlinePlayers().forEach {
-                        println("3")
                         it.showTitle(Title.title("<gray>You will have...".miniMessage(), Component.empty()))
                     }
                     var amount = 0
@@ -110,6 +109,50 @@ class SoulboundCommand {
                 target.updateScoreboardStuff()
                 target.getSoulMate()?.updateScoreboardStuff()
                 return@addTargetExecute false
+            }
+
+
+        var oldPlayer: OfflinePlayer? = null // Player that we take the soulbound from
+
+        main.addSubCommand("transfer")
+            .addStringSubCommand()
+            .addStringExecute {
+                sendLog("Transfer Command | Getting old player")
+                oldPlayer = Bukkit.getOfflinePlayer(string)
+                if (oldPlayer!!.hasPlayedBefore()) return@addStringExecute true
+                sendLog("Transfer Command | Old player has joined before")
+                return@addStringExecute false
+            }
+            .addStringSubCommand()
+            .addStringExecute {
+                sendLog("Transfer Command | Getting new player")
+                val newPlayer = Bukkit.getOfflinePlayer(string)
+                val soulData = oldPlayer!!.getSoulData() ?: run {
+                    sendLog("Transfer Command | Old player doesn't have any souldata")
+                    sender.sendRichMessage("<red>Invalid player!")
+                    return@addStringExecute false
+                }
+
+                sendLog("Transfer Command | Giving soulbound to new member")
+                if (soulData.player1 == oldPlayer!!.uniqueId) soulData.player1 = newPlayer.uniqueId else soulData.player2 = newPlayer.uniqueId
+
+                newPlayer.player?.run { this.updateScoreboardStuff() }
+
+                sendLog("Transfer Command | Success!")
+
+                sender.sendRichMessage("<green>Transferred!")
+                return@addStringExecute false
+            }
+
+        main.addSubCommand("get")
+            .addExecutePlayer {
+                val player = player ?: return@addExecutePlayer false
+
+                player.sendRichMessage("<gray>----------")
+                SoulBound.WORLD.persistentDataContainer.keys.forEach { player.sendRichMessage("<aqua>${SoulBound.WORLD.persistentDataContainer.get(it, PersistentDataType.STRING)}") }
+                player.sendRichMessage("<gray>----------")
+
+                return@addExecutePlayer false
             }
 
         main.addSubCommand("end")

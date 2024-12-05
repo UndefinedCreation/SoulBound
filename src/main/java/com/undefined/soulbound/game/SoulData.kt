@@ -3,8 +3,8 @@ package com.undefined.soulbound.game
 import java.util.UUID
 
 data class SoulData(
-    val player1: UUID,
-    val player2: UUID,
+    var player1: UUID,
+    var player2: UUID,
     var lives: Int,
     val key: UUID = UUID.randomUUID()
 ) {
