@@ -3,12 +3,11 @@ package com.undefined.soulbound
 import com.undefined.api.event.event
 import com.undefined.api.extension.string.miniMessage
 import com.undefined.api.scheduler.delay
-import com.undefined.api.sendLog
-import com.undefined.api.sendWarning
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.SoulManager
 import com.undefined.soulbound.game.getSoulData
 import com.undefined.soulbound.game.getSoulMate
+import com.undefined.soulbound.util.sendDebug
 import com.undefined.soulbound.util.updateScoreboardStuff
 import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.title.Title
@@ -28,54 +27,81 @@ import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
+import java.util.*
 
 class SoulboundListener {
+
+    val playersDamaged: MutableList<UUID> = mutableListOf()
+
     init {
         event<EntityDamageEvent> {
             val player = entity as? Player ?: return@event
+            sendDebug("--------------------")
+            sendDebug("Health Sync | Damaged Player : ${player.name}")
             val soulmate = player.getSoulMate() ?: return@event
+            sendDebug("Health Sync | Damaged Soulmate : ${soulmate.name}")
 
-            if (damageSource.causingEntity == player) {
-                sendWarning("This player has been damaged by itself, is that intentional?") // TODO remove this
+            if (player.uniqueId in playersDamaged) {
+                sendDebug("Health Sync | Player has damaged itself")
                 DamageModifier.entries.forEach {
+                    if (!isApplicable(it)) return@forEach
+                    if (it == DamageModifier.BASE) return@forEach
                     setDamage(it, 0.0)
                 }
                 return@event
             }
+            sendDebug("Health Sync | Not same entity causing damage")
 
             soulmate.health = player.health
+            sendDebug("Health Sync | Setting soulmate health to damage player (${player.health})")
             val currentVelocity = soulmate.velocity.clone()
+            sendDebug("Health Sync | Adding the player to the playersDamaged List")
+            playersDamaged.add(soulmate.uniqueId)
             soulmate.damage(finalDamage, soulmate)
+            sendDebug("Health Sync | Damaging soulmate final ($finalDamage)")
             soulmate.velocity = currentVelocity
+            sendDebug("Health Sync | Setting soulmate old velocity")
 
-            if (soulmate.isDead) {
-                val soulData = player.getSoulData() ?: return@event
+            if (!soulmate.isDead) return@event
 
-                soulData.lives--
+            sendDebug("Health Sync | Soulmate died")
 
-                if (soulData.lives <= 0) {
-                    player.gameMode = GameMode.SPECTATOR
-                    soulmate.gameMode = GameMode.SPECTATOR
+            val soulData = player.getSoulData() ?: return@event
+            sendDebug("Health Sync | Getting souldata")
+            soulData.lives--
+            sendDebug("Health Sync | Removing live from souldata. New value (${soulData.lives})")
 
-                    player.world.strikeLightningEffect(player.location)
-                    player.world.strikeLightningEffect(soulmate.location)
+            if (soulData.lives <= 0) {
+                sendDebug("Health Sync | Lives is 0. Removing players from game")
+                player.gameMode = GameMode.SPECTATOR
+                soulmate.gameMode = GameMode.SPECTATOR
+                sendDebug("Health Sync | Set both players to spectator")
 
-                    Bukkit.getOnlinePlayers().forEach {
-                        it.playSound(it, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1f, 1f)
-                    }
+                player.world.strikeLightningEffect(player.location)
+                player.world.strikeLightningEffect(soulmate.location)
+                sendDebug("Health Sync | Strike Lightning at death locations")
 
-                } else {
-                    player.updateScoreboardStuff()
-                    soulmate.updateScoreboardStuff()
+                Bukkit.getOnlinePlayers().forEach {
+                    it.playSound(it, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1f, 1f)
                 }
-
+                sendDebug("Health Sync | Death sound played to all players")
+            } else {
+                player.updateScoreboardStuff()
+                soulmate.updateScoreboardStuff()
+                sendDebug("Health Sync | Updating scoreboard information")
             }
         }
 
         event<EntityRegainHealthEvent> {
             val player = entity as? Player ?: return@event
+            sendDebug("--------------------")
+            sendDebug("Health Sync Regain | Regaining Player : ${player.name}")
             val soulMate = player.getSoulMate() ?: return@event
-            delay(1) { soulMate.health = if (player.health >= 20.0) 20.0 else player.health }
+            sendDebug("Health Sync Regain | Soulmate : ${soulMate.name}")
+            delay(1) {
+                soulMate.health = if (player.health >= 20.0) 20.0 else player.health
+                sendDebug("Health Sync Regain | Updated soulmate health to main regainer. Value (${soulMate.health})")
+            }
         }
 
 
@@ -87,9 +113,8 @@ class SoulboundListener {
                 item?.let {
                     if (item.enchantments.size >= 2) array.remove(item)
                     item.enchantments.forEach {
-                        if (it.key == Enchantment.PROTECTION) {
+                        if (it.key == Enchantment.PROTECTION)
                             if (it.value > 1) array.remove(item)
-                        }
                     }
                 }
             }

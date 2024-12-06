@@ -9,6 +9,8 @@ import com.undefined.api.sendLog
 import com.undefined.soulbound.SoulBound
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.*
+import com.undefined.soulbound.util.debugMode
+import com.undefined.soulbound.util.sendDebug
 import com.undefined.soulbound.util.updateScoreboardStuff
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
@@ -117,6 +119,7 @@ class SoulboundCommand {
         main.addSubCommand("transfer")
             .addStringSubCommand()
             .addStringExecute {
+                sendDebug("--------------------")
                 sendLog("Transfer Command | Getting old player")
                 oldPlayer = Bukkit.getOfflinePlayer(string)
                 if (oldPlayer!!.hasPlayedBefore()) return@addStringExecute true
@@ -149,8 +152,20 @@ class SoulboundCommand {
                 val player = player ?: return@addExecutePlayer false
 
                 player.sendRichMessage("<gray>----------")
-                SoulBound.WORLD.persistentDataContainer.keys.forEach { player.sendRichMessage("<aqua>${SoulBound.WORLD.persistentDataContainer.get(it, PersistentDataType.STRING)}") }
+                SoulBound.WORLD.persistentDataContainer.keys.forEach {
+                    player.sendRichMessage("<gray>${it.key}: <aqua>${SoulBound.WORLD.persistentDataContainer.get(it, PersistentDataType.STRING)}")
+                }
                 player.sendRichMessage("<gray>----------")
+
+                return@addExecutePlayer false
+            }
+
+        main.addSubCommand("toggleDebugMode")
+            .addExecutePlayer {
+                val player = player ?: return@addExecutePlayer false
+                debugMode = !debugMode
+
+                player.sendRichMessage("<green>Debug mode has been toggled to $debugMode")
 
                 return@addExecutePlayer false
             }
