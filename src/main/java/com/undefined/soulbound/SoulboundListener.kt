@@ -35,13 +35,14 @@ class SoulboundListener {
 
     init {
         event<EntityDamageEvent> {
-            val player = entity as? Player ?: return@event
+            val playerDamaged = entity as? Player ?: return@event
             sendDebug("--------------------")
-            sendDebug("Health Sync | Damaged Player : ${player.name}")
-            val soulmate = player.getSoulMate() ?: return@event
-            sendDebug("Health Sync | Damaged Soulmate : ${soulmate.name}")
+            sendDebug("Health Sync | Damaged Player: ${playerDamaged.name}")
+            val soulmate = playerDamaged.getSoulMate() ?: return@event
+            sendDebug("Health Sync | Damaged Soulmate: ${soulmate.name}")
 
-            if (player.uniqueId in playersDamaged) {
+            if (playerDamaged.uniqueId in playersDamaged) {
+                playersDamaged.remove(playerDamaged.uniqueId)
                 sendDebug("Health Sync | Player has damaged itself")
                 DamageModifier.entries.forEach {
                     if (!isApplicable(it)) return@forEach
@@ -52,10 +53,9 @@ class SoulboundListener {
             }
             sendDebug("Health Sync | Not same entity causing damage")
 
-            soulmate.health = player.health
-            sendDebug("Health Sync | Setting soulmate health to damage player (${player.health})")
+            soulmate.health = playerDamaged.health
+            sendDebug("Health Sync | Setting soulmate health to damage player (${playerDamaged.health})")
             val currentVelocity = soulmate.velocity.clone()
-            sendDebug("Health Sync | Adding the player to the playersDamaged List")
             playersDamaged.add(soulmate.uniqueId)
             soulmate.damage(finalDamage, soulmate)
             sendDebug("Health Sync | Damaging soulmate final ($finalDamage)")
@@ -64,21 +64,21 @@ class SoulboundListener {
 
             if (!soulmate.isDead) return@event
 
-            sendDebug("Health Sync | Soulmate died")
+            sendDebug("Health Sync | Soulmate died!")
 
-            val soulData = player.getSoulData() ?: return@event
+            val soulData = playerDamaged.getSoulData() ?: return@event
             sendDebug("Health Sync | Getting souldata")
             soulData.lives--
             sendDebug("Health Sync | Removing live from souldata. New value (${soulData.lives})")
 
             if (soulData.lives <= 0) {
                 sendDebug("Health Sync | Lives is 0. Removing players from game")
-                player.gameMode = GameMode.SPECTATOR
+                playerDamaged.gameMode = GameMode.SPECTATOR
                 soulmate.gameMode = GameMode.SPECTATOR
                 sendDebug("Health Sync | Set both players to spectator")
 
-                player.world.strikeLightningEffect(player.location)
-                player.world.strikeLightningEffect(soulmate.location)
+                playerDamaged.world.strikeLightningEffect(playerDamaged.location)
+                playerDamaged.world.strikeLightningEffect(soulmate.location)
                 sendDebug("Health Sync | Strike Lightning at death locations")
 
                 Bukkit.getOnlinePlayers().forEach {
@@ -86,7 +86,7 @@ class SoulboundListener {
                 }
                 sendDebug("Health Sync | Death sound played to all players")
             } else {
-                player.updateScoreboardStuff()
+                playerDamaged.updateScoreboardStuff()
                 soulmate.updateScoreboardStuff()
                 sendDebug("Health Sync | Updating scoreboard information")
             }
@@ -95,9 +95,9 @@ class SoulboundListener {
         event<EntityRegainHealthEvent> {
             val player = entity as? Player ?: return@event
             sendDebug("--------------------")
-            sendDebug("Health Sync Regain | Regaining Player : ${player.name}")
+            sendDebug("Health Sync Regain | Regaining Player: ${player.name}")
             val soulMate = player.getSoulMate() ?: return@event
-            sendDebug("Health Sync Regain | Soulmate : ${soulMate.name}")
+            sendDebug("Health Sync Regain | Soulmate: ${soulMate.name}")
             delay(1) {
                 soulMate.health = if (player.health >= 20.0) 20.0 else player.health
                 sendDebug("Health Sync Regain | Updated soulmate health to main regainer. Value (${soulMate.health})")
