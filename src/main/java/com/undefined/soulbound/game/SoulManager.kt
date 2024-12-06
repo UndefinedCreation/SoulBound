@@ -1,6 +1,7 @@
 package com.undefined.soulbound.game
 
 import com.undefined.soulbound.SoulBound
+import com.undefined.soulbound.util.sendDebug
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.OfflinePlayer
@@ -16,6 +17,8 @@ object SoulManager {
 
 fun Collection<Player>.giveSoulBounds() {
     val players: MutableList<Player> = this.toMutableList()
+    sendDebug("--------------------")
+    sendDebug("Give SoulBounds | Called with players: ${players.joinToString(", ")}")
 
     for (x in 1 .. players.size / 2) {
         val player1 = players.random().also { players.remove(it) }
@@ -27,6 +30,7 @@ fun Collection<Player>.giveSoulBounds() {
         val soulData = SoulData(player1.uniqueId, player2.uniqueId, lives)
 
         SoulManager.souls.add(soulData)
+        sendDebug("Added SoulData for players: ${player1.name}, ${player2.name}")
     }
 }
 

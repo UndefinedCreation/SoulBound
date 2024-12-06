@@ -8,6 +8,7 @@ import com.undefined.soulbound.game.SoulManager
 import com.undefined.soulbound.game.loadSoulData
 import com.undefined.soulbound.game.saveAll
 import com.undefined.soulbound.util.TabManager
+import com.undefined.soulbound.util.sendDebug
 import org.bukkit.*
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.ShapedRecipe
@@ -25,14 +26,17 @@ class SoulBound : JavaPlugin() {
     }
 
     override fun onEnable() {
+        sendDebug("--------------------")
         INSTANCE = this
         UNDEFINED = UndefinedAPI(this)
         WORLD = Bukkit.getWorld("world")!!
         LOGGER = slF4JLogger
 
         Bukkit.getServerTickManager().isFrozen = true
+        sendDebug("Main | Frozen ticks")
 
         SoulManager.souls = WORLD.loadSoulData().toMutableList()
+        sendDebug("Main | Loaded in SoulData")
         val main = Bukkit.getScoreboardManager().mainScoreboard
         TabManager.colorTeams = HashMap<ChatColor, Team>().apply {
             ChatColor.entries.forEach { color ->
@@ -41,14 +45,20 @@ class SoulBound : JavaPlugin() {
                 team.color = color
             }
         }
+        sendDebug("Main | Setup TagManager")
 
         SoulboundListener()
+        sendDebug("Main | Loaded SoulboundListener")
         SoulboundCommand()
+        sendDebug("Main | Loaded SoulboundCommand")
 
-        repeatingTask(5, TimeUnit.MINUTES) { WORLD.saveAll(SoulManager.souls) }
+        repeatingTask(5, TimeUnit.MINUTES) {
+            sendDebug("Main | Saving all SoulData...")
+            WORLD.saveAll(SoulManager.souls)
+            sendDebug("Main | Successfully Saved all SoulData")
+        }
 
         val sr = ShapedRecipe(NamespacedKey(this, "TNT"), ItemStack(Material.TNT))
-
         sr.shape(
             "PSP",
             "SGS",
@@ -60,7 +70,7 @@ class SoulBound : JavaPlugin() {
         sr.setIngredient('G', Material.GUNPOWDER)
 
         Bukkit.addRecipe(sr)
-
+        sendDebug("Main | Added TNT recipe")
     }
 
     override fun onDisable() {

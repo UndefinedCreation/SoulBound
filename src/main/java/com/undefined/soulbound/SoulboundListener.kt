@@ -106,16 +106,14 @@ class SoulboundListener {
 
 
         event<InventoryOpenEvent> {
-
             val array = this.inventory.contents.toMutableList()
 
-            this.inventory.contents.forEach { item ->
-                item?.let {
-                    if (item.enchantments.size >= 2) array.remove(item)
-                    item.enchantments.forEach {
-                        if (it.key == Enchantment.PROTECTION)
-                            if (it.value > 1) array.remove(item)
-                    }
+            for (item in inventory.contents) {
+                if (item == null) continue
+                if (item.enchantments.size >= 2) array.remove(item)
+                for (enchantment in item.enchantments) {
+                    if (enchantment.key == Enchantment.PROTECTION)
+                        if (enchantment.value > 1) array.remove(item)
                 }
             }
 
@@ -143,18 +141,15 @@ class SoulboundListener {
         event<PlayerJoinEvent> {
             val soulmate = player.getSoulMate() ?: return@event
             player.health = soulmate.health
-
             player.updateScoreboardStuff()
         }
 
         event<GameEndEvent> {
-
             if (SoulManager.boogieman != null) {
                 SoulManager.souls.firstOrNull { it.key == SoulManager.boogieman }?.let {
                     it.lives--
                 }
             }
-
         }
 
         event<AsyncChatEvent> {
@@ -175,20 +170,14 @@ class SoulboundListener {
                 val data2 = (entity as Player).getSoulData() ?: return@event
                 if (data2.key == data1.key) return@event
 
-                SoulManager.boogieman?.let { bUUID ->
-                    killer.getSoulData()?.let {
-                        if (it.key == bUUID) {
-                            SoulManager.boogieman = null
+                val boogieman = SoulManager.boogieman ?: return@event
+                val killerSoulData = killer.getSoulData() ?: return@event
+                if (killerSoulData.key != boogieman) return@event
 
-                            Bukkit.getOnlinePlayers().forEach {
-
-                                it.showTitle(Title.title("<Green>Boogieman has killed!".miniMessage(), "<green>${killer.name} killed ${entity.name}".miniMessage()))
-                                it.playSound(it, Sound.BLOCK_ANVIL_LAND, 1.0F, 1.0F)
-                            }
-
-                        }
-                    }
-
+                SoulManager.boogieman = null
+                for (player in Bukkit.getOnlinePlayers()) {
+                    player.showTitle(Title.title("<Green>Boogieman has killed!".miniMessage(), "<green>${killer.name} killed ${entity.name}".miniMessage()))
+                    player.playSound(player, Sound.BLOCK_ANVIL_LAND, 1.0F, 1.0F)
                 }
             }
         }

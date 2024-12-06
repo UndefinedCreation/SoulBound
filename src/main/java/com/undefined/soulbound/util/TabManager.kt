@@ -10,6 +10,7 @@ object TabManager {
 }
 
 fun Player.updateScoreboardStuff() {
+    sendDebug("TabManager | Updated scoreboard stuff")
     val data = getSoulData() ?: return
 
     val team = when(data.lives) {
