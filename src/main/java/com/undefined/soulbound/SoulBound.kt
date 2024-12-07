@@ -10,6 +10,7 @@ import com.undefined.soulbound.game.saveAll
 import com.undefined.soulbound.util.TabManager
 import com.undefined.soulbound.util.sendDebug
 import org.bukkit.*
+import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.ShapedRecipe
 import org.bukkit.plugin.java.JavaPlugin
@@ -23,6 +24,7 @@ class SoulBound : JavaPlugin() {
         lateinit var UNDEFINED: UndefinedAPI
         lateinit var WORLD: World
         lateinit var LOGGER: Logger
+        lateinit var CONFIG: FileConfiguration
     }
 
     override fun onEnable() {
@@ -31,6 +33,8 @@ class SoulBound : JavaPlugin() {
         UNDEFINED = UndefinedAPI(this)
         WORLD = Bukkit.getWorld("world")!!
         LOGGER = slF4JLogger
+        CONFIG = this.config
+        saveDefaultConfig()
 
         Bukkit.getServerTickManager().isFrozen = true
         sendDebug("Main | Frozen ticks")

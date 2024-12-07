@@ -1,13 +1,12 @@
 package com.undefined.soulbound.camera
 
-import org.bukkit.Location
 import org.bukkit.util.Vector
 
 object CameraAlgorithm {
 
-    fun generateSmoothPath(controlPoints: Map<Int, Location>): Map<Int, Location> {
+    fun generateSmoothPath(controlPoints: Map<Int, Point>): Map<Int, Point> {
         val sortedPoints = controlPoints.toSortedMap()
-        val resultPoints = mutableMapOf<Int, Location>()
+        val resultPoints = mutableMapOf<Int, Point>()
 
         val keys = sortedPoints.keys.toList()
         val values = sortedPoints.values.toList()
@@ -25,7 +24,7 @@ object CameraAlgorithm {
         return resultPoints
     }
 
-    private fun interpolatePoints(points: List<Location>, t: Double): Location {
+    private fun interpolatePoints(points: List<Point>, t: Double): Point {
         // Directly return start or end point when t is 0 or 1
         if (t <= 0.0) return points[0]
         if (t >= 1.0) return points[1]
@@ -41,7 +40,7 @@ object CameraAlgorithm {
         val interpolatedYaw = interpolateAngle(points[p1].pointYaw, points[p2].pointYaw, localT).toFloat()
         val interpolatedPitch = interpolateAngle(points[p1].pointPitch, points[p2].pointPitch, localT).toFloat()
 
-        return Location(interpolatedPosition, pointYaw = interpolatedYaw, pointPitch = interpolatedPitch)
+        return Point(interpolatedPosition, pointYaw = interpolatedYaw, pointPitch = interpolatedPitch)
     }
 
     private fun catmullRomPosition(p0: Vector, p1: Vector, p2: Vector, p3: Vector, t: Double): Vector {

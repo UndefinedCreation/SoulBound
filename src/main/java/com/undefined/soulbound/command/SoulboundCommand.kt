@@ -7,8 +7,10 @@ import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.repeatingTask
 import com.undefined.api.sendLog
 import com.undefined.soulbound.SoulBound
+import com.undefined.soulbound.camera.CameraSequence
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.*
+import com.undefined.soulbound.manager.Config
 import com.undefined.soulbound.util.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
@@ -353,8 +355,11 @@ class SoulboundCommand {
         }
     }
 
-    fun netherEvent() {
-
+    private fun netherEvent() {
+        for (player in Bukkit.getOnlinePlayers()) {
+            val sequence = CameraSequence(Config.netherPoints, player)
+            sequence()
+        }
     }
 
     fun getColor(int: Int): String = when (int) {

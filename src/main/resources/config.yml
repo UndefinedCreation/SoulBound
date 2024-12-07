@@ -1,0 +1,15 @@
+nether-points:
+  - x: 1
+    y: 320
+    z: 1
+    yaw: 180
+    pitch: 0
+    duration: 10
+    delay: 10 # delay before the next point
+  - x: 10
+    y: 100
+    z: 10
+    yaw: 90
+    pitch: 90
+    duration: 10
+    delay: 5

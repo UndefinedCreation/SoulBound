@@ -7,5 +7,7 @@ import org.bukkit.util.Vector
 data class Point(
     val position: Vector,
     val pointYaw: Float,
-    val pointPitch: Float
-) : Location(SoulBound.INSTANCE.WORLD, position.x, position.y, position.z, pointYaw, pointPitch)
+    val pointPitch: Float,
+    val duration: Int = 15,
+    val delay: Int = 10,
+) : Location(SoulBound.WORLD, position.x, position.y, position.z, pointYaw, pointPitch)
