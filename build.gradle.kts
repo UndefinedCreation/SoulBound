@@ -23,6 +23,7 @@ repositories {
         url = uri("https://repo.undefinedcreation.com/repo")
     }
     maven("https://repo.codemc.io/repository/maven-snapshots/")
+    maven { url = uri("https://maven.enginehub.org/repo/") }
 }
 
 
@@ -31,6 +32,11 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
 
     implementation("com.undefined:api:0.5.94:mapped")
+
+    // World EDit
+    implementation(platform("com.intellectualsites.bom:bom-newest:1.51")) // Ref: https://github.com/IntellectualSites/bom
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core")
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
 }
 
 tasks {

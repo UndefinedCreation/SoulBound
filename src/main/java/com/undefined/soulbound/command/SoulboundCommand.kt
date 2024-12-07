@@ -7,6 +7,7 @@ import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.repeatingTask
 import com.undefined.api.sendLog
 import com.undefined.soulbound.SoulBound
+import com.undefined.soulbound.animation.Animation
 import com.undefined.soulbound.camera.CameraSequence
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.*
@@ -133,7 +134,7 @@ class SoulboundCommand {
 
         eventsSubCommand.addSubCommand("nether")
             .addExecutePlayer {
-                netherEvent()
+                netherEvent(player!!)
                 return@addExecutePlayer false
             }
 
@@ -355,10 +356,13 @@ class SoulboundCommand {
         }
     }
 
-    private fun netherEvent() {
+    private fun netherEvent(player: Player) {
+
         for (player in Bukkit.getOnlinePlayers()) {
-            val sequence = CameraSequence(Config.netherPoints, player)
-            sequence()
+//            val sequence = CameraSequence(Config.netherPoints, player)
+//            sequence()
+
+
         }
     }
 

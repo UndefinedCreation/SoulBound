@@ -16,6 +16,8 @@ import org.bukkit.inventory.ShapedRecipe
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scoreboard.Team
 import org.slf4j.Logger
+import java.io.File
+import java.nio.file.Files
 
 class SoulBound : JavaPlugin() {
 
@@ -25,6 +27,7 @@ class SoulBound : JavaPlugin() {
         lateinit var WORLD: World
         lateinit var LOGGER: Logger
         lateinit var CONFIG: FileConfiguration
+        lateinit var ANIMATION_FOLDER: File
     }
 
     override fun onEnable() {
@@ -36,6 +39,8 @@ class SoulBound : JavaPlugin() {
         CONFIG = this.config
         saveDefaultConfig()
 
+        sendDebug("Main | Creating Folders")
+        ANIMATION_FOLDER = File(dataFolder, "animation").apply { mkdir() }
         Bukkit.getServerTickManager().isFrozen = true
         sendDebug("Main | Frozen ticks")
 

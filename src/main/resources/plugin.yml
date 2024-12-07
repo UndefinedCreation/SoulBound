@@ -2,3 +2,4 @@ name: SoulBound
 version: '0.0.1'
 main: com.undefined.soulbound.SoulBound
 api-version: '1.21'
+depend: [WorldEdit]
