@@ -131,13 +131,27 @@ class SoulboundCommand {
 
 
         val eventsSubCommand = main.addSubCommand("events")
-
         eventsSubCommand.addSubCommand("nether")
             .addExecutePlayer {
                 netherEvent(player!!)
                 return@addExecutePlayer false
             }
 
+        val configSubCommand = main.addSubCommand("config")
+        val configGet = configSubCommand.addSubCommand("get")
+        configGet.addSubCommand("netherAnimationDelay")
+            .addExecutePlayer {
+                sendRichMessage("<gray>The nether animation delay is set to: ${Config.netherAnimationDelay}")
+                return@addExecutePlayer false
+            }
+        val configSet = configSubCommand.addSubCommand("set")
+        configSet.addSubCommand("netherAnimationDelay")
+            .addNumberSubCommand()
+            .addNumberExecute {
+                Config.netherAnimationDelay = number.toInt()
+                sendDebug("Config Update | Nether animation delay has been modified to (${number.toInt()})")
+                return@addNumberExecute false
+            }
 
         var oldPlayer: OfflinePlayer? = null // Player that we take the soulbound from
 

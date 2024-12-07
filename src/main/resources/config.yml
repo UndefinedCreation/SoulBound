@@ -13,3 +13,5 @@ nether-points:
     pitch: 90
     duration: 10
     delay: 5
+
+nether-animation-delay: 10

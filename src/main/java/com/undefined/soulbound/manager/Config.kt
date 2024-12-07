@@ -11,6 +11,12 @@ object Config {
 
     private val config: FileConfiguration = SoulBound.INSTANCE.config
 
+    var netherAnimationDelay: Int = config.getInt("nether-animation-delay")
+        set(value) {
+            config.set("nether-animation-delay", value)
+            field = config.getInt("nether-animation-delay")
+        }
+
     val netherPoints: List<Point>
         get() {
             sendDebug("--------------------")
