@@ -296,6 +296,10 @@ class SoulboundCommand {
                 sendDebug("Life gifting | Life from player (${player.name})")
                 val soulData: SoulData = player.getSoulData() ?: return@addTargetExecute false
                 sendDebug("Life gifting | Getting souldata with key (${soulData.key})")
+                if (player.uniqueId == target.uniqueId) {
+                    sendDebug("Life gifting | Player can't gift himself lives")
+                    player.sendRichMessage("<red>You cannot gift yourself lives!")
+                }
                 val targetSoulData: SoulData = target.getSoulData() ?: run {
                     player.sendRichMessage("<red>That player is invalid!")
                     sendDebug("Life gifting | Target player doesn't have any souldata")

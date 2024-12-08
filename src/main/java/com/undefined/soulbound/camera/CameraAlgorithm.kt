@@ -1,22 +1,23 @@
 package com.undefined.soulbound.camera
 
+import com.undefined.soulbound.util.sendDebug
 import org.bukkit.util.Vector
 
 typealias Tick = Int
 
 object CameraAlgorithm {
 
-    val timelineSeparation: Tick = 30
-
-    fun generatePerTickPath(points: List<Point>): Map<Tick, Point> {
-        val controlPoints = mutableMapOf<Int, Point>()
-        for ((index, location) in points.withIndex()) {
-            controlPoints[index * timelineSeparation] = Point(
-                location.toVector(),
-                location.yaw,
-                location.pitch
-            )
+    fun generatePerTickPath(firstPoint: Point, points: List<Point>): Map<Tick, Point> {
+        sendDebug("\n-------------")
+        val tickPoints = mutableMapOf<Tick, Point>()
+        for ((i, point) in points.withIndex()) {
+            val oldPoint = points.getOrNull(i - 1) ?: firstPoint
+            val path = getPath(oldPoint, point)
+            path.forEach { entry ->
+                tickPoints[tickPoints.keys.sum() + entry.key] = entry.value
+            }
         }
+        return tickPoints
     }
 
     fun generateSmoothPath(controlPoints: Map<Tick, Point>): Map<Tick, Point> {
