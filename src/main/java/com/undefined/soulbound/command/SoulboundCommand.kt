@@ -16,6 +16,7 @@ import com.undefined.soulbound.util.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.OfflinePlayer
 import org.bukkit.Sound
 import org.bukkit.entity.Player
@@ -371,12 +372,13 @@ class SoulboundCommand {
     }
 
     private fun netherEvent(player: Player) {
+        delay(Config.netherFlyingUpwardDuration + Config.netherPoints[0].duration + Config.netherPoints[0].delay) { // TODO Change
+            Animation.NETHER.animation(Location(player.location.world, -424.0, 111.0, -1803.0))
+        }
 
         for (player in Bukkit.getOnlinePlayers()) {
-//            val sequence = CameraSequence(Config.netherPoints, player)
-//            sequence()
-
-
+            val sequence = CameraSequence(Config.netherPoints, player)
+            sequence()
         }
     }
 

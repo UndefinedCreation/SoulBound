@@ -11,6 +11,7 @@ object Config {
 
     private val config: FileConfiguration = SoulBound.INSTANCE.config
 
+    val netherFlyingUpwardDuration = 30
     var netherAnimationDelay: Int = config.getInt("nether-animation-delay")
         set(value) {
             config.set("nether-animation-delay", value)
@@ -26,20 +27,27 @@ object Config {
             sendDebug("Config | Getting keys...")
             return netherPointsSection.map {
                 sendDebug("Config | Getting configuration section for (${it})")
-                val pointSection = it as? LinkedHashMap<String, Int> ?: throw InvalidConfigException()
+                val section = it as? LinkedHashMap<String, Any?> ?: throw InvalidConfigException()
                 sendDebug("Config | Successfully gotten configuration section for ($it)")
                 Point(
                     Vector(
-                        pointSection["x"] ?: throw InvalidConfigException(),
-                        pointSection["y"] ?: throw InvalidConfigException(),
-                        pointSection["z"] ?: throw InvalidConfigException()
+                        getValueFromSection(section, "x"),
+                        getValueFromSection(section, "y"),
+                        getValueFromSection(section, "z")
                     ),
-                    (pointSection["yaw"] ?: throw InvalidConfigException()).toFloat(),
-                    (pointSection["pitch"] ?: throw InvalidConfigException()).toFloat(),
-                    pointSection["duration"] ?: throw InvalidConfigException(),
-                    pointSection["delay"] ?: 5,
+                    getValueFromSection(section, "yaw").toFloat(),
+                    getValueFromSection(section, "pitch").toFloat(),
+                    getValueFromSection(section, "duration").toInt(),
+                    getValueFromSection(section, "delay").toInt(),
                 )
             }
         }
+
+    fun getValueFromSection(section: LinkedHashMap<String, Any?>, name: String): Double {
+        val value = section[name] ?: throw InvalidConfigException()
+        if (value is Int) return value.toDouble()
+        if (value is Double) return value
+        return 0.0
+    }
 
 }

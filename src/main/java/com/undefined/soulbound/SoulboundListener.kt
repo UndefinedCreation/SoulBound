@@ -25,6 +25,7 @@ import org.bukkit.event.entity.EntityRegainHealthEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.PrepareItemCraftEvent
+import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
 import java.util.*
@@ -150,6 +151,10 @@ class SoulboundListener {
                     it.lives--
                 }
             }
+        }
+
+        event<PlayerCommandPreprocessEvent> {
+            if (!this.message.contains("/gift") && !player.hasPermission("command")) isCancelled = true
         }
 
         event<AsyncChatEvent> {
