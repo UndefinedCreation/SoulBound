@@ -1,5 +1,9 @@
 package com.undefined.soulbound.command
 
+import com.undefined.akari.CamaraSequence
+import com.undefined.akari.objects.CamaraAlgorithmType
+import com.undefined.akari.objects.CamaraPoint
+import com.undefined.akari.objects.camaraPoint
 import com.undefined.api.command.UndefinedCommand
 import com.undefined.api.extension.string.miniMessage
 import com.undefined.api.scheduler.TimeUnit
@@ -8,7 +12,6 @@ import com.undefined.api.scheduler.repeatingTask
 import com.undefined.api.sendLog
 import com.undefined.soulbound.SoulBound
 import com.undefined.soulbound.animation.Animation
-import com.undefined.soulbound.camera.CameraSequence
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.*
 import com.undefined.soulbound.manager.Config
@@ -18,11 +21,13 @@ import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.OfflinePlayer
+import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.scheduler.BukkitTask
 import kotlin.random.Random
+import kotlin.random.nextInt
 
 class SoulboundCommand {
 
@@ -372,14 +377,83 @@ class SoulboundCommand {
     }
 
     private fun netherEvent(player: Player) {
-        delay(Config.netherFlyingUpwardDuration + Config.netherPoints[0].duration + Config.netherPoints[0].delay) { // TODO Change
-            Animation.NETHER.animation(Location(player.location.world, -424.0, 111.0, -1803.0))
+
+        Bukkit.getOnlinePlayers().forEach {
+            it.showTitle(Title.title("<gray>Next step in life is".miniMessage(), "".miniMessage()))
+            it.playSound(it, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
+        }
+        delay(20) {
+            Bukkit.getOnlinePlayers().forEach {
+                it.showTitle(Title.title("<gray>Next step in life is.".miniMessage(), "".miniMessage()))
+                it.playSound(it, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
+            }
+            delay(20) {
+                Bukkit.getOnlinePlayers().forEach {
+                    it.showTitle(Title.title("<gray>Next step in life is..".miniMessage(), "".miniMessage()))
+                    it.playSound(it, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
+                }
+                delay(20) {
+                    Bukkit.getOnlinePlayers().forEach {
+                        it.showTitle(Title.title("<gray>Next step in life is...".miniMessage(), "".miniMessage()))
+                        it.playSound(it, Sound.BLOCK_STONE_BUTTON_CLICK_ON, 1.0F, 1.0F)
+                    }
+
+                    delay(20) {
+                        delay(75) { // TODO Change
+                            Animation.NETHER.animation(Location(player.location.world, -424.0, 111.0, -1803.0))
+                            Bukkit.getOnlinePlayers().forEach { it.playSound(it, Sound.AMBIENT_NETHER_WASTES_MOOD, 1000F, 0.7F) }
+
+                            spawnP(Location(player.location.world, -424.0, 111.0, -1803.0))
+
+                        }
+
+                        delay(35) {
+                            Bukkit.getOnlinePlayers().forEach {
+                                it.playSound(it, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1f, 1f)
+                            }
+                        }
+
+                        delay(195) {
+                            Bukkit.getOnlinePlayers().forEach {
+                                it.showTitle(Title.title("<RED>HELL.".miniMessage(), "".miniMessage()))
+                                it.playSound(it, Sound.BLOCK_END_PORTAL_SPAWN, 1f, 0.1f)
+                            }
+                        }
+
+
+                        Bukkit.getOnlinePlayers().forEach {
+                            it.playSound(it, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1f, 1f)
+                        }
+                        for (player in Bukkit.getOnlinePlayers()) {
+                            CamaraSequence(SoulBound.INSTANCE, CamaraAlgorithmType.SIMPLE)
+                                .addPoint(CamaraPoint(SoulBound.WORLD, player.eyeLocation.x, player.eyeLocation.y, player.eyeLocation.z, player.eyeLocation.yaw, player.eyeLocation.pitch, durationIntoPoint = 0, delay = 0))
+                                .addPoint(CamaraPoint(SoulBound.WORLD, player.x, 175.0, player.z,90f, 90f, durationIntoPoint = 30, delay = 5))
+                                .addPoint(CamaraPoint(SoulBound.WORLD, -415.0, 175.0, -1803.0,90f, 90f, durationIntoPoint = 20, delay = 0))
+                                .addPoint(CamaraPoint(SoulBound.WORLD, -415.0, 123.0, -1803.0,90f, -25f, durationIntoPoint = 20, delay = 0))
+                                .addPoint(CamaraPoint(SoulBound.WORLD, -415.0, 119.0, -1803.0,90f, 15f, durationIntoPoint = 30, delay = 0))
+                                .addPoint(CamaraPoint(SoulBound.WORLD, -415.0, 118.0, -1803.0,90f, 0f, durationIntoPoint = 30, delay = 0))
+                                .addPoint(CamaraPoint(SoulBound.WORLD, -415.0, 117.0, -1803.0,90f, -15f, durationIntoPoint = 30, delay = 0))
+                                .addPoint(CamaraPoint(SoulBound.WORLD, -415.0, 114.0, -1803.0,90f, -25f, durationIntoPoint = 30, delay = 60))
+                                .play(player)
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun spawnP(location: Location) {
+
+        val list = listOf(Particle.FALLING_SPORE_BLOSSOM, Particle.REVERSE_PORTAL)
+
+        repeatingTask(30, 6) {
+            for (x in 0..50) {
+                val location = location.clone().add(Random.nextInt(0, 10).toDouble(), Random.nextInt(0, 15).toDouble(), Random.nextInt(-10, 10).toDouble())
+                location.world.spawnParticle(list.random(), location, 5)
+            }
         }
 
-        for (player in Bukkit.getOnlinePlayers()) {
-            val sequence = CameraSequence(Config.netherPoints, player)
-            sequence()
-        }
     }
 
     fun getColor(int: Int): String = when (int) {

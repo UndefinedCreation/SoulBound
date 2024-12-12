@@ -6,7 +6,9 @@ import com.undefined.soulbound.SoulBound
 import com.undefined.soulbound.manager.Config
 import com.undefined.soulbound.util.WorldEditUtil
 import com.undefined.soulbound.util.sendDebug
+import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.Sound
 import java.io.File
 
 object Animation {
@@ -25,6 +27,12 @@ object Animation {
 
             repeatingTask(Config.netherAnimationDelay, times = 5) {
                 sendDebug("Animation Nether | Pasting Stage ($amount)")
+
+                Bukkit.getOnlinePlayers().forEach {
+                    it.playSound(it, Sound.BLOCK_ANVIL_BREAK, 1000f, 0.1f)
+                    it.playSound(it, Sound.BLOCK_BASALT_BREAK, 1000f, 0.1f)
+                }
+
                 WorldEditUtil.paste(schems.firstOrNull { it.name.contains("s$amount") }, location)
                 amount++
             }
