@@ -14,7 +14,7 @@ import kotlin.collections.HashMap
 object SoulManager {
     var souls: MutableList<SoulData> = mutableListOf()
     var boogieman: UUID? = null
-    val skin: HashMap<UUID, Pair<String, String>> = mutableListOf()
+    val skin: HashMap<UUID, Pair<String, String>> = hashMapOf()
 }
 
 fun Collection<Player>.giveSoulBounds() {

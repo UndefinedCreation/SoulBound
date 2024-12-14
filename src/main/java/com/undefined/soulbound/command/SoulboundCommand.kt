@@ -7,6 +7,7 @@ import com.undefined.api.extension.string.miniMessage
 import com.undefined.api.scheduler.TimeUnit
 import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.repeatingTask
+import com.undefined.api.scheduler.sync
 import com.undefined.api.sendLog
 import com.undefined.soulbound.SoulBound
 import com.undefined.soulbound.VoiceChatImpl
@@ -14,6 +15,8 @@ import com.undefined.soulbound.animation.Animation
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.*
 import com.undefined.soulbound.manager.Config
+import com.undefined.soulbound.skin.SkinManager
+import com.undefined.soulbound.skin.SkinManager.setSkin
 import com.undefined.soulbound.util.*
 import com.undefined.stellar.StellarCommand
 import de.maxhenkel.voicechat.api.Group
@@ -285,7 +288,7 @@ object SoulboundCommand {
 
         boogieman.addArgument("roll")
             .addExecution<Player> {
-                if (SoulManager.boogieman == null) {
+                if (SoulManager.boogieman != null) {
                     sender.sendRichMessage("<red>There is already a boogieman!")
                 }
                 assignBoogieman()
@@ -327,13 +330,19 @@ object SoulboundCommand {
         val skin = main.addArgument("skin")
 
         skin.addArgument("normal")
+            .addOnlinePlayersArgument("target")
             .addExecution<Player> {
-
+                SkinManager.getNormalSkin(getArgument<Player>("target").name) {
+                    sender.setSkin(it)
+                }
             }
 
         skin.addArgument("gray")
+            .addOnlinePlayersArgument("target")
             .addExecution<Player> {
-//                sender.playerProfile.textures.setSkin()
+                SkinManager.getGraySkin(getArgument<Player>("target").name) {
+                    sender.setSkin(it)
+                }
             }
 
         main.register(SoulBound.INSTANCE)
@@ -465,7 +474,7 @@ object SoulboundCommand {
 
                         delay(196) {
                             Bukkit.getOnlinePlayers().forEach {
-                                it.showTitle(Title.title("<RED>HELL.".miniMessage(), "".miniMessage()))
+                                it.showTitle(Title.title("<dark_red>HELL.".miniMessage(), "".miniMessage()))
                                 it.playSound(it, Sound.BLOCK_END_PORTAL_SPAWN, 1f, 0.1f)
                             }
                         }
