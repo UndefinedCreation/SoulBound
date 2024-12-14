@@ -126,19 +126,17 @@ object SoulboundCommand {
             }
 
 
-        val eventsSubCommand = main.addSubCommand("events")
-        eventsSubCommand.addSubCommand("nether")
-            .addExecutePlayer {
-                netherEvent(player!!)
-                return@addExecutePlayer false
+        val eventsSubCommand = main.addArgument("events")
+        eventsSubCommand.addArgument("nether")
+            .addExecution<Player> {
+                netherEvent(sender)
             }
 
-        val configSubCommand = main.addSubCommand("config")
-        val configGet = configSubCommand.addSubCommand("get")
-        configGet.addSubCommand("netherAnimationDelay")
-            .addExecutePlayer {
-                sendRichMessage("<gray>The nether animation delay is set to: ${Config.netherAnimationDelay}")
-                return@addExecutePlayer false
+        val configSubCommand = main.addArgument("config")
+        val configGet = configSubCommand.addArgument("get")
+        configGet.addArgument("netherAnimationDelay")
+            .addExecution<Player> {
+                sender.sendRichMessage("<gray>The nether animation delay is set to: ${Config.netherAnimationDelay}")
             }
 
         val configSet = configSubCommand.addArgument("set")
@@ -175,40 +173,34 @@ object SoulboundCommand {
                 sender.sendRichMessage("<green>Transferred!")
             }
 
-        main.addSubCommand("get")
-            .addExecutePlayer {
-                val player = player ?: return@addExecutePlayer false
-
-                player.sendRichMessage("<gray>----------")
+        main.addArgument("get")
+            .addExecution<Player> {
+                sender.sendRichMessage("<gray>----------")
                 SoulBound.WORLD.persistentDataContainer.keys.forEach {
-                    player.sendRichMessage("<gray>${it.key}: <aqua>${SoulBound.WORLD.persistentDataContainer.get(it, PersistentDataType.STRING)}")
+                    val sould = SoulData.fromString(SoulBound.WORLD.persistentDataContainer.get(it, PersistentDataType.STRING))
+                    sender.sendRichMessage("<gray>${it.key}: <aqua>${Bukkit.getOfflinePlayer(sould.player1).name} | ${Bukkit.getOfflinePlayer(sould.player2).name} | ${sould.lives}")
                 }
-                player.sendRichMessage("<gray>----------")
-
-                return@addExecutePlayer false
+                sender.sendRichMessage("<gray>----------")
             }
 
-        main.addSubCommand("toggleDebugMode")
-            .addExecutePlayer {
+        main.addArgument("toggleDebugMode")
+            .addExecution<Player> {
                 sendDebug("--------------------")
                 debugMode = !debugMode
                 sendDebug("Toggle Debug | Debug mode has been toggled to (${debugMode})")
-
-                sendRichMessage("<green>Debug mode has been toggled to $debugMode", true)
-                return@addExecutePlayer false
+                sender.sendRichMessage("<green>Debug mode has been toggled to $debugMode", true)
             }
 
-        main.addSubCommand("toggleCooldownShorter")
-            .addExecutePlayer {
+        main.addArgument("toggleCooldownShorter")
+            .addExecution<Player> {
                 sendDebug("--------------------")
                 timerCooldownShorter = !timerCooldownShorter
                 sendDebug("Toggle Cooldown Timer | Cooldown timer has been toggled to ($timerCooldownShorter)")
-                sendRichMessage("<green>Timer shorter mode has been toggled to $timerCooldownShorter", true)
-                return@addExecutePlayer false
+                sender.sendRichMessage("<green>Timer shorter mode has been toggled to $timerCooldownShorter", true)
             }
 
-        main.addSubCommand("end")
-            .addExecutePlayer {
+        main.addArgument("end")
+            .addExecution<Player> {
                 sendDebug("--------------------")
                 GameEndEvent().callEvent()
                 sendDebug("Game End | GameEndEvent called")
@@ -223,31 +215,29 @@ object SoulboundCommand {
                 sendDebug("Game End | Set whitelist to true")
                 autoSessionEndTask?.cancel()
                 sendDebug("--------------------")
-                return@addExecutePlayer false
             }
 
         main.addArgument("removeLife")
             .addOnlinePlayersArgument("players")
             .addExecution<Player> {
                 sendDebug("--------------------")
-                val player: Player = sender as? Player ?: return@addTargetExecute false
+                val target = getArgument<Player>("players")
                 sendDebug("Remove Life | Removing life for (${target.name})")
                 val soulData: SoulData = target.getSoulData() ?: run {
                     sendDebug("Remove Life | Invalid Player")
-                    player.sendRichMessage("<red>Invalid player!")
-                    return@addTargetExecute false
+                    sender.sendRichMessage("<red>Invalid player!")
+                    return@addExecution
                 }
                 sendDebug("Remove Life | Fetched target SoulData")
-                player.sendRichMessage("<green>Life has been removed!")
+                sender.sendRichMessage("<green>Life has been removed!")
                 soulData.lives--
                 target.updateScoreboardStuff()
                 target.getSoulMate()?.updateScoreboardStuff()
                 sendDebug("Remove Life | End")
-                return@addTargetExecute false
             }
 
-        main.addSubCommand("reset")
-            .addExecutePlayer {
+        main.addArgument("reset")
+            .addExecution<Player> {
                 sendDebug("--------------------")
 
                 SoulBound.WORLD.persistentDataContainer.keys.forEach { SoulBound.WORLD.persistentDataContainer.remove(it) }
@@ -255,18 +245,17 @@ object SoulboundCommand {
                 SoulManager.souls.clear()
                 sendDebug("Reset Lives | Cleared all SoulData")
 
-                sendRichMessage("<red>Soul bound have been cleared", true)
+                sender.sendRichMessage("<red>Soul bound have been cleared", true)
                 Bukkit.getOnlinePlayers().forEach { it.updateScoreboardStuff() }
 
                 autoSessionEndTask?.cancel()
                 sendDebug("Reset Lives | Cancel AutoSessionEndTask")
 
-                return@addExecutePlayer false
             }
 
-        val boogieman = main.addSubCommand("boogieman")
-        boogieman.addSubCommand("clear")
-            .addExecutePlayer {
+        val boogieman = main.addArgument("boogieman")
+        boogieman.addArgument("clear")
+            .addExecution<Player> {
                 sendDebug("--------------------")
                 SoulManager.boogieman = null
                 sendDebug("Boogieman Admin Clear | Boogieman has been cleared")
@@ -274,18 +263,14 @@ object SoulboundCommand {
                     it.showTitle(Title.title("<Green>Boogieman has killed!".miniMessage(), "<green>Was cleared by admin".miniMessage()))
                     it.playSound(it, Sound.BLOCK_ANVIL_LAND, 1.0F, 1.0F)
                 }
-                return@addExecutePlayer false
             }
 
-        boogieman.addSubCommand("roll")
-            .addExecutePlayer {
+        boogieman.addArgument("roll")
+            .addExecution<Player> {
                 if (SoulManager.boogieman == null) {
-                    player?.sendRichMessage("<red>There is already a boogieman!")
-                    return@addExecutePlayer false
+                    sender.sendRichMessage("<red>There is already a boogieman!")
                 }
-
                 assignBoogieman()
-                return@addExecutePlayer false
             }
 
         main.addArgument("setSoulmate")
@@ -323,49 +308,49 @@ object SoulboundCommand {
 
         main.register(SoulBound.INSTANCE)
 
-        UndefinedCommand("gift")
-            .addPlayerSubCommand()
-            .addTargetExecute {
+        StellarCommand("gift")
+            .addOnlinePlayersArgument("target")
+            .addExecution<Player> {
                 sendDebug("--------------------")
-                val player: Player = sender as? Player ?: return@addTargetExecute false
-                sendDebug("Life gifting | Life from player (${player.name})")
-                val soulData: SoulData = player.getSoulData() ?: return@addTargetExecute false
+                sendDebug("Life gifting | Life from player (${sender.name})")
+                val soulData: SoulData = sender.getSoulData() ?: return@addExecution
+                val target = getArgument<Player>("target")
                 sendDebug("Life gifting | Getting souldata with key (${soulData.key})")
-                if (player.uniqueId == target.uniqueId) {
+                if (sender.uniqueId == target.uniqueId) {
                     sendDebug("Life gifting | Player can't gift himself lives")
-                    player.sendRichMessage("<red>You cannot gift yourself lives!")
+                    sender.sendRichMessage("<red>You cannot gift yourself lives!")
                 }
                 val targetSoulData: SoulData = target.getSoulData() ?: run {
-                    player.sendRichMessage("<red>That player is invalid!")
+                    sender.sendRichMessage("<red>That player is invalid!")
                     sendDebug("Life gifting | Target player doesn't have any souldata")
-                    return@addTargetExecute false
+                    return@addExecution
                 }
                 if (soulData.lives < targetSoulData.lives) {
-                    player.sendRichMessage("<red>You cannot gift to somebody with more lives than yourself!")
+                    sender.sendRichMessage("<red>You cannot gift to somebody with more lives than yourself!")
                     sendDebug("Life gifting | Life from player has less lives than its self.")
-                    return@addTargetExecute false
+                    return@addExecution
                 }
                 if (soulData.lives < 2) {
-                    player.sendRichMessage("<red>You don't have enough lives to be able to gift any!")
+                    sender.sendRichMessage("<red>You don't have enough lives to be able to gift any!")
                     sendDebug("Life gifting | Life from player has less than 2 life")
-                    return@addTargetExecute false
+                    return@addExecution
                 }
-                val soulmate = player.getSoulMate()
+                val soulmate = sender.getSoulMate()
                 sendDebug("Life gifting | Life from player soulmate (${soulmate?.name})")
                 if (soulmate != null && target.uniqueId == soulmate.uniqueId) {
-                    player.sendRichMessage("<red>You cannot give lives to your soulmate!")
+                    sender.sendRichMessage("<red>You cannot give lives to your soulmate!")
                     sendDebug("Life gifting | Trying to give live to its own soulmate")
-                    return@addTargetExecute false
+                    return@addExecution
                 }
                 soulData.lives -= 1
                 sendDebug("Life gifting | Removed life from player. Value (${soulData.lives})")
                 targetSoulData.lives += 1
                 sendDebug("Life gifting | Added life to target player. Value (${soulData.lives})")
-                player.sendRichMessage("<green>You successfully gifted one life to ${target.name}")
-                target.sendRichMessage("<green>You have been gifted one life by ${player.name}")
-                player.updateScoreboardStuff()
+                sender.sendRichMessage("<green>You successfully gifted one life to ${target.name}")
+                target.sendRichMessage("<green>You have been gifted one life by ${sender.name}")
+                sender.updateScoreboardStuff()
                 target.updateScoreboardStuff()
-                return@addTargetExecute false
+                return@addExecution
             }
             .register(SoulBound.INSTANCE)
     }
@@ -460,10 +445,11 @@ object SoulboundCommand {
                             it.playSound(it, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1f, 1f)
                         }
 
-                        val locations: HashMap<UUID, Location> = hashMapOf()
-
-
                         for (player in Bukkit.getOnlinePlayers()) {
+
+                            Bukkit.getOnlinePlayers().forEach {
+                                player.hidePlayer(it)
+                            }
 
                             CamaraSequence(SoulBound.INSTANCE, CamaraAlgorithmType.SIMPLE)
                                 .addPoint(CamaraPoint(SoulBound.WORLD, player.eyeLocation.x, player.eyeLocation.y, player.eyeLocation.z, player.eyeLocation.yaw, player.eyeLocation.pitch, durationIntoPoint = 0, delay = 0))
@@ -477,6 +463,7 @@ object SoulboundCommand {
                                 .play(player)
 
                             locations[player.uniqueId] = player.location
+                            gameMode[player.uniqueId] = player.gameMode
                             player.gameMode = GameMode.SPECTATOR
 
                             player.teleport(Location(SoulBound.WORLD, -415.0, 114.0, -1803.0, 90f, -25f))
@@ -486,9 +473,13 @@ object SoulboundCommand {
                         delay(321) {
                             Bukkit.getOnlinePlayers().forEach { player ->
                                 locations[player.uniqueId]?.let { player.teleport(it) }
-                                player.gameMode = GameMode.SURVIVAL
+                                gameMode[player.uniqueId]?.let { player.gameMode = it }
+                                Bukkit.getOnlinePlayers().forEach {
+                                    player.showPlayer(it)
+                                }
                             }
                             locations.clear()
+                            gameMode.clear()
                         }
 
                     }
