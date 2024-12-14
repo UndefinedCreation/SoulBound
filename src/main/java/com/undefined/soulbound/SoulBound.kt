@@ -2,6 +2,7 @@ package com.undefined.soulbound
 
 import com.undefined.api.UndefinedAPI
 import com.undefined.api.scheduler.TimeUnit
+import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.repeatingTask
 import com.undefined.soulbound.command.SoulboundCommand
 import com.undefined.soulbound.game.SoulManager
@@ -9,6 +10,7 @@ import com.undefined.soulbound.game.loadSoulData
 import com.undefined.soulbound.game.saveAll
 import com.undefined.soulbound.util.TabManager
 import com.undefined.soulbound.util.sendDebug
+import de.maxhenkel.voicechat.api.BukkitVoicechatService
 import org.bukkit.*
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.inventory.ItemStack
@@ -17,6 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scoreboard.Team
 import org.slf4j.Logger
 import java.io.File
+
 
 class SoulBound : JavaPlugin() {
 
@@ -29,6 +32,8 @@ class SoulBound : JavaPlugin() {
         lateinit var ANIMATION_FOLDER: File
     }
 
+    var voiceChat: VoiceChatImpl? = null
+
     override fun onEnable() {
         sendDebug("--------------------")
         INSTANCE = this
@@ -37,6 +42,12 @@ class SoulBound : JavaPlugin() {
         LOGGER = slF4JLogger
         CONFIG = this.config
         saveDefaultConfig()
+
+        delay(100) {
+            val service = server.servicesManager.load(BukkitVoicechatService::class.java) ?: throw IllegalStateException("HELP ME")
+            voiceChat = VoiceChatImpl()
+            service.registerPlugin(voiceChat)
+        }
 
         sendDebug("Main | Creating Folders")
         ANIMATION_FOLDER = File(dataFolder, "animation").apply { mkdir() }
@@ -96,5 +107,10 @@ class SoulBound : JavaPlugin() {
 
     override fun onDisable() {
         WORLD.saveAll(SoulManager.souls)
+        voiceChat?.let {
+            server.servicesManager.unregister(it)
+            LOGGER.info("Successfully unregistered voice chat broadcast plugin")
+        }
     }
+
 }

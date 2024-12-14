@@ -9,12 +9,15 @@ import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.repeatingTask
 import com.undefined.api.sendLog
 import com.undefined.soulbound.SoulBound
+import com.undefined.soulbound.VoiceChatImpl
 import com.undefined.soulbound.animation.Animation
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.*
 import com.undefined.soulbound.manager.Config
 import com.undefined.soulbound.util.*
 import com.undefined.stellar.StellarCommand
+import de.maxhenkel.voicechat.api.Group
+import de.maxhenkel.voicechat.api.VoicechatConnection
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import org.bukkit.*
@@ -23,6 +26,7 @@ import org.bukkit.persistence.PersistentDataType
 import org.bukkit.scheduler.BukkitTask
 import java.util.*
 import kotlin.random.Random
+
 
 object SoulboundCommand {
 
@@ -102,6 +106,20 @@ object SoulboundCommand {
                         }
 
                     }
+                }
+            }
+
+        main.addArgument("sendToGroup")
+            .addStringArgument("name")
+            .addExecution<Player> {
+                val group: Group = VoiceChatImpl.API.groupBuilder()
+                    .setPersistent(false)
+                    .setName(getArgument<String>("name"))
+                    .build()
+
+                for (player in Bukkit.getOnlinePlayers()) {
+                    val connection: VoicechatConnection = VoiceChatImpl.API.getConnectionOf(player.uniqueId) ?: return@addExecution
+                    connection.group = group
                 }
             }
 
