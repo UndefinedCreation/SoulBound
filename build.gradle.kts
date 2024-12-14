@@ -58,6 +58,9 @@ dependencies {
     implementation(platform("com.intellectualsites.bom:bom-newest:1.51")) // Ref: https://github.com/IntellectualSites/bom
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core")
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
+
+    implementation("org.mineskin:java-client:3.0.1-SNAPSHOT")
+    implementation("org.mineskin:java-client-jsoup:3.0.1-SNAPSHOT")
 }
 
 tasks {

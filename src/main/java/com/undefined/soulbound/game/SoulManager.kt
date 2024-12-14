@@ -9,10 +9,12 @@ import org.bukkit.World
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
 import java.util.*
+import kotlin.collections.HashMap
 
 object SoulManager {
     var souls: MutableList<SoulData> = mutableListOf()
     var boogieman: UUID? = null
+    val skin: HashMap<UUID, Pair<String, String>> = mutableListOf()
 }
 
 fun Collection<Player>.giveSoulBounds() {

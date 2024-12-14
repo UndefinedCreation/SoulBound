@@ -303,11 +303,11 @@ object SoulboundCommand {
                 val amountOfLives = getArgument<Int>("amount")
                 sendDebug("Set Soulmate | Gotten all the variables")
 
-                SoulManager.souls.removeIf {
-                    it.player1 == player.uniqueId || it.player2 == player.uniqueId || it.player1 == target.uniqueId || it.player2 == target.uniqueId
+                SoulManager.souls.filter { it.player1 == player.uniqueId || it.player2 == player.uniqueId || it.player1 == target.uniqueId || it.player2 == target.uniqueId }.forEach {
+                    SoulBound.WORLD.persistentDataContainer.remove(NamespacedKey(SoulBound.INSTANCE, it.key.toString()))
+                    SoulManager.souls.remove(it)
                 }
                 sendDebug("Set Soulmate | Removed all the previous souls")
-
 
                 player.player?.health = 20.0
                 target.player?.health = 20.0
@@ -322,6 +322,18 @@ object SoulboundCommand {
                 target.player?.updateScoreboardStuff()
                 sendDebug("Set Soulmate | Update ScoreBoard stuff")
                 sender.sendRichMessage("<green>You have successfully set a soulmate!", true)
+            }
+
+        val skin = main.addArgument("skin")
+
+        skin.addArgument("normal")
+            .addExecution<Player> {
+
+            }
+
+        skin.addArgument("gray")
+            .addExecution<Player> {
+//                sender.playerProfile.textures.setSkin()
             }
 
         main.register(SoulBound.INSTANCE)
