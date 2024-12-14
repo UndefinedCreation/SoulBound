@@ -3,6 +3,7 @@ package com.undefined.soulbound
 import com.undefined.api.event.event
 import com.undefined.api.extension.string.miniMessage
 import com.undefined.api.scheduler.delay
+import com.undefined.soulbound.command.SoulboundCommand
 import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.SoulManager
 import com.undefined.soulbound.game.getSoulData
@@ -25,6 +26,7 @@ import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerPortalEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.ItemStack
 import java.util.*
 
@@ -89,6 +91,13 @@ class SoulboundListener {
                 soulmate.updateScoreboardStuff()
                 sendDebug("Health Sync | Updating scoreboard information")
             }
+        }
+
+        event<PlayerQuitEvent> {
+            val returnLocation = SoulboundCommand.locations[player.uniqueId] ?: return@event
+            val returnGamemode = SoulboundCommand.gameMode[player.uniqueId] ?: return@event
+            player.teleport(returnLocation)
+            player.gameMode = returnGamemode
         }
 
         event<EntityRegainHealthEvent> {

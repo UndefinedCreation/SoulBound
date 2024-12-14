@@ -3,7 +3,6 @@ package com.undefined.soulbound.command
 import com.undefined.akari.CamaraSequence
 import com.undefined.akari.objects.CamaraAlgorithmType
 import com.undefined.akari.objects.CamaraPoint
-import com.undefined.api.command.UndefinedCommand
 import com.undefined.api.extension.string.miniMessage
 import com.undefined.api.scheduler.TimeUnit
 import com.undefined.api.scheduler.delay
@@ -15,6 +14,7 @@ import com.undefined.soulbound.event.GameEndEvent
 import com.undefined.soulbound.game.*
 import com.undefined.soulbound.manager.Config
 import com.undefined.soulbound.util.*
+import com.undefined.stellar.StellarCommand
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import org.bukkit.*
@@ -24,14 +24,17 @@ import org.bukkit.scheduler.BukkitTask
 import java.util.*
 import kotlin.random.Random
 
-class SoulboundCommand {
+object SoulboundCommand {
 
-    var autoSessionEndTask: BukkitTask? = null
+    private var autoSessionEndTask: BukkitTask? = null
+    val locations: HashMap<UUID, Location> = hashMapOf()
+    val gameMode: HashMap<UUID, GameMode> = hashMapOf()
 
     init {
-        val main = UndefinedCommand("soulbound", permission = "undefined.event.soulbound")
-        main.addSubCommand("start")
-            .addExecutePlayer {
+        val main = StellarCommand("soulbound")
+            .addRequirements("undefined.event.soulbound")
+        main.addArgument("start")
+            .addExecution<Player> {
                 sendDebug("--------------------")
                 sendDebug("Game Stat | Start command")
                 var a = 5
@@ -100,34 +103,26 @@ class SoulboundCommand {
 
                     }
                 }
-                return@addExecutePlayer false
             }
 
-        main.addSubCommand("lives")
-            .addPlayerSubCommand()
-            .addTargetExecute {
-                val player: Player = sender as? Player ?: return@addTargetExecute false
-                val soulData: SoulData = target.getSoulData() ?: run {
-                    player.sendRichMessage("<red>Invalid player!")
-                    return@addTargetExecute false
-                }
-                player.sendRichMessage("<green>${target.name} has ${getColor(soulData.lives)}${soulData.lives} <green>lives.")
-                return@addTargetExecute false
+        main.addArgument("lives")
+            .addOnlinePlayersArgument("target")
+            .addExecution<Player> {
+                val target = getArgument<Player>("target")
+                val soulData: SoulData = target.getSoulData() ?: return@addExecution sender.sendRichMessage("<red>Invalid player!")
+                sender.sendRichMessage("<green>${target.name} has ${getColor(soulData.lives)}${soulData.lives} <green>lives.")
+                return@addExecution
             }
 
-        main.addSubCommand("addLife")
-            .addPlayerSubCommand()
-            .addTargetExecute {
-                val player: Player = sender as? Player ?: return@addTargetExecute false
-                val soulData: SoulData = target.getSoulData() ?: run {
-                    player.sendRichMessage("<red>Invalid player!")
-                    return@addTargetExecute false
-                }
-                player.sendRichMessage("<green>Life has been added!")
+        main.addArgument("addLife")
+            .addOnlinePlayersArgument("target")
+            .addExecution<Player> {
+                val target = getArgument<Player>("target")
+                val soulData: SoulData = target.getSoulData() ?: return@addExecution sender.sendRichMessage("<red>Invalid player!")
+                sender.sendRichMessage("<green>Life has been added!")
                 soulData.lives++
                 target.updateScoreboardStuff()
                 target.getSoulMate()?.updateScoreboardStuff()
-                return@addTargetExecute false
             }
 
 
@@ -145,46 +140,39 @@ class SoulboundCommand {
                 sendRichMessage("<gray>The nether animation delay is set to: ${Config.netherAnimationDelay}")
                 return@addExecutePlayer false
             }
-        val configSet = configSubCommand.addSubCommand("set")
-        configSet.addSubCommand("netherAnimationDelay")
-            .addNumberSubCommand()
-            .addNumberExecute {
-                Config.netherAnimationDelay = number.toInt()
-                sendDebug("Config Update | Nether animation delay has been modified to (${number.toInt()})")
-                return@addNumberExecute false
+
+        val configSet = configSubCommand.addArgument("set")
+        configSet
+            .addArgument("netherAnimationDelay")
+            .addIntegerArgument("number")
+            .addExecution<Player> {
+                val number = getArgument<Int>("number")
+                Config.netherAnimationDelay = number
+                sendDebug("Config Update | Nether animation delay has been modified to (${number})")
             }
 
-        var oldPlayer: OfflinePlayer? = null // Player that we take the soulbound from
-
-        main.addSubCommand("transfer")
-            .addStringSubCommand()
-            .addStringExecute {
+        main.addArgument("transfer")
+            .addStringArgument("oldPlayer")
+            .addStringArgument("newPlayer")
+            .addExecution<Player> {
                 sendDebug("--------------------")
                 sendLog("Transfer Command | Getting old player")
-                oldPlayer = Bukkit.getOfflinePlayer(string)
-                if (oldPlayer!!.hasPlayedBefore()) return@addStringExecute true
+                val oldPlayer = Bukkit.getOfflinePlayer(getArgument<String>("string"))
+                if (oldPlayer.hasPlayedBefore()) return@addExecution
                 sendLog("Transfer Command | Old player has joined before")
-                return@addStringExecute false
-            }
-            .addStringSubCommand()
-            .addStringExecute {
                 sendLog("Transfer Command | Getting new player")
-                val newPlayer = Bukkit.getOfflinePlayer(string)
-                val soulData = oldPlayer!!.getSoulData() ?: run {
+                val newPlayer = Bukkit.getOfflinePlayer(getArgument<String>("newPlayer"))
+                val soulData = oldPlayer.getSoulData() ?: run {
                     sendLog("Transfer Command | Old player doesn't have any souldata")
-                    sender.sendRichMessage("<red>Invalid player!")
-                    return@addStringExecute false
+                    return@addExecution sender.sendRichMessage("<red>Invalid player!")
                 }
 
                 sendLog("Transfer Command | Giving soulbound to new member")
-                if (soulData.player1 == oldPlayer!!.uniqueId) soulData.player1 = newPlayer.uniqueId else soulData.player2 = newPlayer.uniqueId
+                if (soulData.player1 == oldPlayer.uniqueId) soulData.player1 = newPlayer.uniqueId else soulData.player2 = newPlayer.uniqueId
 
                 newPlayer.player?.run { this.updateScoreboardStuff() }
-
                 sendLog("Transfer Command | Success!")
-
                 sender.sendRichMessage("<green>Transferred!")
-                return@addStringExecute false
             }
 
         main.addSubCommand("get")
@@ -238,9 +226,9 @@ class SoulboundCommand {
                 return@addExecutePlayer false
             }
 
-        main.addSubCommand("removeLife")
-            .addPlayerSubCommand()
-            .addTargetExecute {
+        main.addArgument("removeLife")
+            .addOnlinePlayersArgument("players")
+            .addExecution<Player> {
                 sendDebug("--------------------")
                 val player: Player = sender as? Player ?: return@addTargetExecute false
                 sendDebug("Remove Life | Removing life for (${target.name})")
@@ -300,6 +288,41 @@ class SoulboundCommand {
                 return@addExecutePlayer false
             }
 
+        main.addArgument("setSoulmate")
+            .addOfflinePlayersArgument("player")
+            .addOfflinePlayersArgument("target")
+            .addIntegerArgument("amount")
+            .addExecution<Player> {
+                sendDebug("--------------------")
+                sendDebug("Set Soulmate | Getting all variables")
+                val player = getArgument<OfflinePlayer>("player")
+                val target = getArgument<OfflinePlayer>("target")
+                val amountOfLives = getArgument<Int>("amount")
+                sendDebug("Set Soulmate | Gotten all the variables")
+
+                SoulManager.souls.removeIf {
+                    it.player1 == player.uniqueId || it.player2 == player.uniqueId || it.player1 == target.uniqueId || it.player2 == target.uniqueId
+                }
+                sendDebug("Set Soulmate | Removed all the previous souls")
+
+
+                player.player?.health = 20.0
+                target.player?.health = 20.0
+                sendDebug("Set Soulmate | Set all health to 20.0")
+
+                val soulData = SoulData(player.uniqueId, target.uniqueId, amountOfLives)
+                sendDebug("Set Soulmate | Make SoulData")
+                SoulManager.souls.add(soulData)
+                sendDebug("Set Soulmate | Add SoulData to SoulManager")
+
+                player.player?.updateScoreboardStuff()
+                target.player?.updateScoreboardStuff()
+                sendDebug("Set Soulmate | Update ScoreBoard stuff")
+                sender.sendRichMessage("<green>You have successfully set a soulmate!", true)
+            }
+
+        main.register(SoulBound.INSTANCE)
+
         UndefinedCommand("gift")
             .addPlayerSubCommand()
             .addTargetExecute {
@@ -344,6 +367,7 @@ class SoulboundCommand {
                 target.updateScoreboardStuff()
                 return@addTargetExecute false
             }
+            .register(SoulBound.INSTANCE)
     }
 
     fun assignBoogieman() {

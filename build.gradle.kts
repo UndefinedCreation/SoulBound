@@ -28,6 +28,7 @@ repositories {
     }
     maven("https://repo.codemc.io/repository/maven-snapshots/")
     maven { url = uri("https://maven.enginehub.org/repo/") }
+    maven { url = uri("https://maven.maxhenkel.de/repository/public") }
 }
 
 
@@ -37,6 +38,9 @@ dependencies {
 
     implementation("com.undefined:api:0.5.94:mapped")
     implementation("com.undefined:akari:0.0.6:mapped")
+    implementation("com.undefined:stellar:0.0.8")
+
+//    implementation("de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}")
 
     // World EDit
     implementation(platform("com.intellectualsites.bom:bom-newest:1.51")) // Ref: https://github.com/IntellectualSites/bom

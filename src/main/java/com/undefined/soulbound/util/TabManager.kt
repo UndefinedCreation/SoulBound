@@ -14,7 +14,7 @@ fun Player.updateScoreboardStuff() {
     val data = getSoulData() ?: return
 
     val team = when(data.lives) {
-        1 -> TabManager.colorTeams[ChatColor.RED]!!
+        1 -> TabManager.colorTeams[ChatColor.DARK_RED]!!
         2 -> TabManager.colorTeams[ChatColor.YELLOW]!!
         3 -> TabManager.colorTeams[ChatColor.GREEN]!!
         4, 5, 6 -> TabManager.colorTeams[ChatColor.DARK_GREEN]!!

@@ -57,7 +57,7 @@ class SoulBound : JavaPlugin() {
 
         SoulboundListener()
         sendDebug("Main | Loaded SoulboundListener")
-        SoulboundCommand()
+        SoulboundCommand
         sendDebug("Main | Loaded SoulboundCommand")
 
         repeatingTask(5, TimeUnit.MINUTES) {
