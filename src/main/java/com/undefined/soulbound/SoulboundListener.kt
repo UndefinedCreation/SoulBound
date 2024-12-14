@@ -151,7 +151,7 @@ class SoulboundListener {
         event<PlayerJoinEvent> {
             val soulmate = player.getSoulMate() ?: return@event
             player.health = soulmate.health
-            player.updateScoreboardStuff()
+            delay(40) {  player.updateScoreboardStuff() }
         }
 
         event<GameEndEvent> {
@@ -167,6 +167,7 @@ class SoulboundListener {
         }
 
         event<PlayerPortalEvent> {
+            if (this.player.location.world != SoulBound.WORLD) return@event
             if (this.player.location.distance(Location(SoulBound.WORLD, -423.0, 113.0, -1803.0)) > 7) isCancelled = true
         }
 

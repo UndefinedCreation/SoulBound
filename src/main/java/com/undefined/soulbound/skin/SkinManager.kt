@@ -1,15 +1,15 @@
 package com.undefined.soulbound.skin
 
+import com.destroystokyo.paper.profile.ProfileProperty
+import com.google.gson.JsonParser
 import com.mojang.authlib.properties.Property
 import com.undefined.api.extension.hidePlayer
 import com.undefined.api.extension.showPlayer
 import com.undefined.api.scheduler.delay
 import com.undefined.api.scheduler.sync
 import com.undefined.soulbound.SoulBound
+import com.undefined.soulbound.util.updateScoreboardStuff
 import net.minecraft.network.protocol.game.*
-import net.minecraft.network.syncher.EntityDataAccessor
-import net.minecraft.network.syncher.EntityDataSerializers
-import net.minecraft.server.network.ServerGamePacketListenerImpl
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
@@ -23,7 +23,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.nio.charset.StandardCharsets
 import javax.imageio.ImageIO
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
+
 
 object SkinManager {
 
@@ -69,7 +73,6 @@ object SkinManager {
             }
             .thenCompose { jobResponse -> return@thenCompose jobResponse.getOrLoadSkin(CLIENT) }
             .thenAccept { skinInfo ->
-
                 sync { done.invoke(Pair(skinInfo.texture().data.value, skinInfo.texture().data.signature)) }
             }
             .exceptionally { throwable ->
@@ -88,12 +91,29 @@ object SkinManager {
 
     }
 
-    fun Player.setSkin(pair: Pair<String, String>) {
+    @OptIn(ExperimentalEncodingApi::class)
+    fun extractSkinUrl(textures: String): URL {
+        val newTextures = String(Base64.decode(textures), StandardCharsets.UTF_8)
+        val url: String = JsonParser().parse(newTextures).asJsonObject
+            .getAsJsonObject("textures")
+            .getAsJsonObject("SKIN")
+            .get("url")
+            .asString
+        return URL(url)
+    }
 
+    fun Player.setSkins(pair: Pair<String, String>) {
+        val pp = playerProfile
+        pp.setProperty(ProfileProperty("textures", pair.first, pair.second))
+        playerProfile = pp
+    }
+
+    @Deprecated("PACKETS :(")
+    fun Player.setSkin(pair: Pair<String, String>) {
         val craftPlayer = this as CraftPlayer
         val serverPlayer = craftPlayer.handle
 
-//        serverPlayer.connection.sendPacket(ClientboundPlayerInfoRemovePacket(listOf(serverPlayer.uuid)))
+        serverPlayer.connection.sendPacket(ClientboundPlayerInfoRemovePacket(listOf(serverPlayer.uuid)))
 
         val gameProfile = serverPlayer.gameProfile
         val properties = gameProfile.properties
@@ -101,8 +121,9 @@ object SkinManager {
         properties.remove("textures", property)
         properties.put("textures", Property("textures", pair.first, pair.second))
 
-
         delay(1) {
+            serverPlayer.connection.sendPacket(ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, serverPlayer))
+
             serverPlayer.connection.sendPacket(
                 ClientboundRespawnPacket(
                     CommonPlayerSpawnInfo(
@@ -117,18 +138,26 @@ object SkinManager {
                         0,
                         0
                     ),
-                    0
+                    3
                 )
             )
 
-            this@setSkin.teleport(this@setSkin.location.clone())
-
+            serverPlayer.connection.sendPacket(ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LISTED, serverPlayer))
             serverPlayer.connection.sendPacket(
                 ClientboundGameEventPacket(
                     ClientboundGameEventPacket.LEVEL_CHUNKS_LOAD_START,
                     0F
                 )
             )
+            this@setSkin.health = 20.0
+            this@setSkin.totalExperience = this@setSkin.totalExperience
+            this@setSkin.teleport(this@setSkin.location.clone())
+            this@setSkin.foodLevel = this@setSkin.foodLevel
+            this@setSkin.updateInventory()
+            this@setSkin.updateScoreboardStuff()
+            serverPlayer.onUpdateAbilities()
+
+
         }
 
         Bukkit.getOnlinePlayers().forEach {
@@ -141,6 +170,8 @@ object SkinManager {
             }
         }
     }
+
+
 
     private fun downloadPng(url: String, outputFile: File) {
         val connection = URL(url).openConnection() as HttpURLConnection

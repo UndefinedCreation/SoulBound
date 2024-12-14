@@ -1,5 +1,6 @@
 package com.undefined.soulbound.command
 
+import com.destroystokyo.paper.profile.ProfileProperty
 import com.undefined.akari.CamaraSequence
 import com.undefined.akari.objects.CamaraAlgorithmType
 import com.undefined.akari.objects.CamaraPoint
@@ -17,6 +18,7 @@ import com.undefined.soulbound.game.*
 import com.undefined.soulbound.manager.Config
 import com.undefined.soulbound.skin.SkinManager
 import com.undefined.soulbound.skin.SkinManager.setSkin
+import com.undefined.soulbound.skin.SkinManager.setSkins
 import com.undefined.soulbound.util.*
 import com.undefined.stellar.StellarCommand
 import de.maxhenkel.voicechat.api.Group
@@ -26,6 +28,7 @@ import net.kyori.adventure.title.Title
 import org.bukkit.*
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
+import org.bukkit.profile.PlayerTextures.SkinModel
 import org.bukkit.scheduler.BukkitTask
 import java.util.*
 import kotlin.random.Random
@@ -142,6 +145,18 @@ object SoulboundCommand {
                 val soulData: SoulData = target.getSoulData() ?: return@addExecution sender.sendRichMessage("<red>Invalid player!")
                 sender.sendRichMessage("<green>Life has been added!")
                 soulData.lives++
+                if (soulData.lives == 2) {
+                    Bukkit.getOfflinePlayer(soulData.player1).player?.let { player ->
+                        SkinManager.getNormalSkin(player.name) {
+                            player.setSkins(it)
+                        }
+                    }
+                    Bukkit.getOfflinePlayer(soulData.player2).player?.let { player ->
+                        SkinManager.getNormalSkin(player.name) {
+                            player.setSkins(it)
+                        }
+                    }
+                }
                 target.updateScoreboardStuff()
                 target.getSoulMate()?.updateScoreboardStuff()
             }
@@ -333,7 +348,12 @@ object SoulboundCommand {
             .addOnlinePlayersArgument("target")
             .addExecution<Player> {
                 SkinManager.getNormalSkin(getArgument<Player>("target").name) {
-                    sender.setSkin(it)
+                    val capeURL = sender.playerProfile.textures.cape
+                    val pp = sender.playerProfile
+                    pp.setProperty(ProfileProperty("textures", it.first, it.second))
+                    println("Cape URL: ${capeURL.toString()}")
+                    pp.textures.cape = capeURL
+                    sender.playerProfile = pp
                 }
             }
 
@@ -341,7 +361,11 @@ object SoulboundCommand {
             .addOnlinePlayersArgument("target")
             .addExecution<Player> {
                 SkinManager.getGraySkin(getArgument<Player>("target").name) {
-                    sender.setSkin(it)
+                    val capeURL = sender.playerProfile.textures.cape
+                    val pp = sender.playerProfile
+                    pp.setProperty(ProfileProperty("textures", it.first, it.second))
+                    pp.textures.cape = capeURL
+                    sender.playerProfile = pp
                 }
             }
 
@@ -384,6 +408,20 @@ object SoulboundCommand {
                 soulData.lives -= 1
                 sendDebug("Life gifting | Removed life from player. Value (${soulData.lives})")
                 targetSoulData.lives += 1
+
+                if (targetSoulData.lives == 2) {
+                    Bukkit.getOfflinePlayer(targetSoulData.player1).player?.let { player ->
+                        SkinManager.getNormalSkin(player.name) {
+                            player.setSkins(it)
+                        }
+                    }
+                    Bukkit.getOfflinePlayer(targetSoulData.player2).player?.let { player ->
+                        SkinManager.getNormalSkin(player.name) {
+                            player.setSkins(it)
+                        }
+                    }
+                }
+
                 sendDebug("Life gifting | Added life to target player. Value (${soulData.lives})")
                 sender.sendRichMessage("<green>You successfully gifted one life to ${target.name}")
                 target.sendRichMessage("<green>You have been gifted one life by ${sender.name}")

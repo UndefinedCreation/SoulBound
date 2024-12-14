@@ -7,6 +7,6 @@ fun Player.sendRichMessage(message: String, broadcastToOps: Boolean) {
     sendRichMessage(message)
     if (broadcastToOps) for (onlinePlayer in Bukkit.getOnlinePlayers()) {
         if (!onlinePlayer.isOp) continue
-        onlinePlayer.sendRichMessage("<gray>[$message]")
+        onlinePlayer.sendRichMessage("<gray>[$message<gray>]")
     }
 }

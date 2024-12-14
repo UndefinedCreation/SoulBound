@@ -15,3 +15,5 @@ nether-points:
     delay: 5
 
 nether-animation-delay: 10
+excluded-grayscale-players:
+  - StillLutto

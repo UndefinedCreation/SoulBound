@@ -8,6 +8,8 @@ object Config {
 
     private val config: FileConfiguration = SoulBound.INSTANCE.config
 
+    val excludedGrayscalePlayers = config.getStringList("excluded-grayscale-players")
+
     val netherFlyingUpwardDuration = 30
     var netherAnimationDelay: Int = config.getInt("nether-animation-delay")
         set(value) {
