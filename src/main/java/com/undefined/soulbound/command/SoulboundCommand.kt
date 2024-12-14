@@ -3,7 +3,6 @@ package com.undefined.soulbound.command
 import com.undefined.akari.CamaraSequence
 import com.undefined.akari.objects.CamaraAlgorithmType
 import com.undefined.akari.objects.CamaraPoint
-import com.undefined.akari.objects.camaraPoint
 import com.undefined.api.command.UndefinedCommand
 import com.undefined.api.extension.string.miniMessage
 import com.undefined.api.scheduler.TimeUnit
@@ -18,16 +17,12 @@ import com.undefined.soulbound.manager.Config
 import com.undefined.soulbound.util.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
-import org.bukkit.Bukkit
-import org.bukkit.Location
-import org.bukkit.OfflinePlayer
-import org.bukkit.Particle
-import org.bukkit.Sound
+import org.bukkit.*
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.scheduler.BukkitTask
+import java.util.*
 import kotlin.random.Random
-import kotlin.random.nextInt
 
 class SoulboundCommand {
 
@@ -281,7 +276,8 @@ class SoulboundCommand {
                 return@addExecutePlayer false
             }
 
-        main.addSubCommand("boogieman")
+        val boogieman = main.addSubCommand("boogieman")
+        boogieman.addSubCommand("clear")
             .addExecutePlayer {
                 sendDebug("--------------------")
                 SoulManager.boogieman = null
@@ -290,6 +286,17 @@ class SoulboundCommand {
                     it.showTitle(Title.title("<Green>Boogieman has killed!".miniMessage(), "<green>Was cleared by admin".miniMessage()))
                     it.playSound(it, Sound.BLOCK_ANVIL_LAND, 1.0F, 1.0F)
                 }
+                return@addExecutePlayer false
+            }
+
+        boogieman.addSubCommand("roll")
+            .addExecutePlayer {
+                if (SoulManager.boogieman == null) {
+                    player?.sendRichMessage("<red>There is already a boogieman!")
+                    return@addExecutePlayer false
+                }
+
+                assignBoogieman()
                 return@addExecutePlayer false
             }
 
@@ -417,7 +424,7 @@ class SoulboundCommand {
                             }
                         }
 
-                        delay(195) {
+                        delay(196) {
                             Bukkit.getOnlinePlayers().forEach {
                                 it.showTitle(Title.title("<RED>HELL.".miniMessage(), "".miniMessage()))
                                 it.playSound(it, Sound.BLOCK_END_PORTAL_SPAWN, 1f, 0.1f)
@@ -428,7 +435,12 @@ class SoulboundCommand {
                         Bukkit.getOnlinePlayers().forEach {
                             it.playSound(it, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1f, 1f)
                         }
+
+                        val locations: HashMap<UUID, Location> = hashMapOf()
+
+
                         for (player in Bukkit.getOnlinePlayers()) {
+
                             CamaraSequence(SoulBound.INSTANCE, CamaraAlgorithmType.SIMPLE)
                                 .addPoint(CamaraPoint(SoulBound.WORLD, player.eyeLocation.x, player.eyeLocation.y, player.eyeLocation.z, player.eyeLocation.yaw, player.eyeLocation.pitch, durationIntoPoint = 0, delay = 0))
                                 .addPoint(CamaraPoint(SoulBound.WORLD, player.x, 175.0, player.z,90f, 90f, durationIntoPoint = 30, delay = 5))
@@ -440,7 +452,21 @@ class SoulboundCommand {
                                 .addPoint(CamaraPoint(SoulBound.WORLD, -415.0, 114.0, -1803.0,90f, -25f, durationIntoPoint = 30, delay = 60))
                                 .play(player)
 
+                            locations[player.uniqueId] = player.location
+                            player.gameMode = GameMode.SPECTATOR
+
+                            player.teleport(Location(SoulBound.WORLD, -415.0, 114.0, -1803.0, 90f, -25f))
+
                         }
+
+                        delay(321) {
+                            Bukkit.getOnlinePlayers().forEach { player ->
+                                locations[player.uniqueId]?.let { player.teleport(it) }
+                                player.gameMode = GameMode.SURVIVAL
+                            }
+                            locations.clear()
+                        }
+
                     }
                 }
             }

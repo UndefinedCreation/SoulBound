@@ -11,10 +11,7 @@ import com.undefined.soulbound.util.sendDebug
 import com.undefined.soulbound.util.updateScoreboardStuff
 import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.title.Title
-import org.bukkit.Bukkit
-import org.bukkit.GameMode
-import org.bukkit.Material
-import org.bukkit.Sound
+import org.bukkit.*
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.event.enchantment.EnchantItemEvent
@@ -27,6 +24,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerPortalEvent
 import org.bukkit.inventory.ItemStack
 import java.util.*
 
@@ -135,6 +133,8 @@ class SoulboundListener {
                 val m = recipe!!.result.type
                 if (m.name.contains("ENCHANTING_TABLE")) {
                     inventory.result = ItemStack(Material.AIR)
+                } else if (m.name.contains("GOLDEN_APPLE")) {
+                    inventory.result = ItemStack(Material.AIR)
                 }
             }
         }
@@ -155,6 +155,10 @@ class SoulboundListener {
 
         event<PlayerCommandPreprocessEvent> {
             if (!this.message.contains("/gift") && !player.hasPermission("command")) isCancelled = true
+        }
+
+        event<PlayerPortalEvent> {
+            if (this.player.location.distance(Location(SoulBound.WORLD, -423.0, 113.0, -1803.0)) > 7) isCancelled = true
         }
 
         event<AsyncChatEvent> {

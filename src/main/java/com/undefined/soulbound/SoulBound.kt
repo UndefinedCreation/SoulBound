@@ -17,7 +17,6 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scoreboard.Team
 import org.slf4j.Logger
 import java.io.File
-import java.nio.file.Files
 
 class SoulBound : JavaPlugin() {
 
@@ -67,19 +66,32 @@ class SoulBound : JavaPlugin() {
             sendDebug("Main | Successfully Saved all SoulData")
         }
 
-        val sr = ShapedRecipe(NamespacedKey(this, "TNT"), ItemStack(Material.TNT))
-        sr.shape(
+        val tntRecipe = ShapedRecipe(NamespacedKey(this, "TNT"), ItemStack(Material.TNT))
+        tntRecipe.shape(
             "PSP",
             "SGS",
             "PSP"
         )
 
-        sr.setIngredient('P', Material.PAPER)
-        sr.setIngredient('S', Material.SAND)
-        sr.setIngredient('G', Material.GUNPOWDER)
+        tntRecipe.setIngredient('P', Material.PAPER)
+        tntRecipe.setIngredient('S', Material.SAND)
+        tntRecipe.setIngredient('G', Material.GUNPOWDER)
 
-        Bukkit.addRecipe(sr)
+        Bukkit.addRecipe(tntRecipe)
         sendDebug("Main | Added TNT recipe")
+
+        val nameTagRecipe = ShapedRecipe(NamespacedKey(this, "NAMETAG"), ItemStack(Material.NAME_TAG))
+        nameTagRecipe.shape(
+            " IS",
+            " LI",
+            "L  "
+        )
+
+        nameTagRecipe.setIngredient('S', Material.STRING)
+        nameTagRecipe.setIngredient('I', Material.IRON_INGOT)
+        nameTagRecipe.setIngredient('L', Material.LEATHER)
+
+        Bukkit.addRecipe(nameTagRecipe)
     }
 
     override fun onDisable() {

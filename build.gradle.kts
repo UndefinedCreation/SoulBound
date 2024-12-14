@@ -36,7 +36,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
 
     implementation("com.undefined:api:0.5.94:mapped")
-
     implementation("com.undefined:akari:0.0.6:mapped")
 
     // World EDit
