@@ -19,7 +19,7 @@ fun Player.updateScoreboardStuff() {
     val team = when(data.lives) {
         1 -> {
             if (name !in Config.excludedGrayscalePlayers)
-                SkinManager.getGraySkin(name) { setSkins(it) }
+                SkinManager.getGraySkin(name, uniqueId) { setSkins(it) }
             TabManager.colorTeams[ChatColor.RED]!!
         }
         2 -> TabManager.colorTeams[ChatColor.YELLOW]!!

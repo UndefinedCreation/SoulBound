@@ -24,6 +24,7 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import java.util.UUID
 import javax.imageio.ImageIO
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -40,15 +41,26 @@ object SkinManager {
     private val outputFile: File = File(SoulBound.INSTANCE.dataFolder, "skins").apply { mkdir() }
 
 
-    fun getNormalSkin(name: String, done: (Pair<String, String>) -> (Unit)) {
+    fun getNormalSkin(name: String, uuid: UUID, done: (Pair<String, String>) -> (Unit)) {
+        if (SoulBound.CONFIG.contains("skin.normal.$uuid")) {
+            val s = SoulBound.CONFIG.getString("skin.normal.$uuid")!!.split("@")
+            done.invoke(Pair(s[0], s[1]))
+            return
+        }
+
         val outFile = File(outputFile, "$name.png")
         if (!outFile.exists()) {
             downloadPng("https://mineskin.eu/download/$name", outFile)
         }
-        getInfo(outFile, done)
+        getInfo(outFile, uuid, false, done)
     }
 
-    fun getGraySkin(name: String, done: (Pair<String, String>) -> (Unit)) {
+    fun getGraySkin(name: String, uuid: UUID, done: (Pair<String, String>) -> (Unit)) {
+
+        if (SoulBound.CONFIG.contains("skin.gray.$uuid")) {
+            val s = SoulBound.CONFIG.getString("skin.gray.$uuid")!!.split("@")
+            return done.invoke(Pair(s[0], s[1]))
+        }
 
         val outFile = File(outputFile, "$name.png")
         val grayOut = File(outputFile, "${name}_gray.png")
@@ -58,10 +70,10 @@ object SkinManager {
             convertToGrayscale(outFile, grayOut)
         }
 
-        getInfo(grayOut, done)
+        getInfo(grayOut, uuid, true, done)
     }
 
-    private fun getInfo(file: File, done: (Pair<String, String>) -> (Unit)) {
+    private fun getInfo(file: File, uuid: UUID, gray: Boolean, done: (Pair<String, String>) -> (Unit)) {
 
         val request = GenerateRequest.upload(file)
             .name("SOULBOUND")
@@ -73,7 +85,12 @@ object SkinManager {
             }
             .thenCompose { jobResponse -> return@thenCompose jobResponse.getOrLoadSkin(CLIENT) }
             .thenAccept { skinInfo ->
-                sync { done.invoke(Pair(skinInfo.texture().data.value, skinInfo.texture().data.signature)) }
+                sync {
+                    SoulBound.CONFIG.set("skin.${if (gray) "gray" else "normal"}.$uuid", "${skinInfo.texture().data.value}@${skinInfo.texture().data.signature}")
+                    SoulBound.CONFIG.save(File(SoulBound.INSTANCE.dataFolder, "config.yml"))
+
+                    done.invoke(Pair(skinInfo.texture().data.value, skinInfo.texture().data.signature))
+                }
             }
             .exceptionally { throwable ->
                 throwable.printStackTrace()

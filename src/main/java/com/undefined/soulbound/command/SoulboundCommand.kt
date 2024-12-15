@@ -147,12 +147,12 @@ object SoulboundCommand {
                 soulData.lives++
                 if (soulData.lives == 2) {
                     Bukkit.getOfflinePlayer(soulData.player1).player?.let { player ->
-                        SkinManager.getNormalSkin(player.name) {
+                        SkinManager.getNormalSkin(player.name, player.uniqueId) {
                             player.setSkins(it)
                         }
                     }
                     Bukkit.getOfflinePlayer(soulData.player2).player?.let { player ->
-                        SkinManager.getNormalSkin(player.name) {
+                        SkinManager.getNormalSkin(player.name, player.uniqueId) {
                             player.setSkins(it)
                         }
                     }
@@ -347,7 +347,8 @@ object SoulboundCommand {
         skin.addArgument("normal")
             .addOnlinePlayersArgument("target")
             .addExecution<Player> {
-                SkinManager.getNormalSkin(getArgument<Player>("target").name) {
+                val target = getArgument<Player>("target")
+                SkinManager.getNormalSkin(target.name, target.uniqueId) {
                     val capeURL = sender.playerProfile.textures.cape
                     val pp = sender.playerProfile
                     pp.setProperty(ProfileProperty("textures", it.first, it.second))
@@ -360,7 +361,8 @@ object SoulboundCommand {
         skin.addArgument("gray")
             .addOnlinePlayersArgument("target")
             .addExecution<Player> {
-                SkinManager.getGraySkin(getArgument<Player>("target").name) {
+                val target = getArgument<Player>("target")
+                SkinManager.getGraySkin(target.name, target.uniqueId) {
                     val capeURL = sender.playerProfile.textures.cape
                     val pp = sender.playerProfile
                     pp.setProperty(ProfileProperty("textures", it.first, it.second))
@@ -411,12 +413,12 @@ object SoulboundCommand {
 
                 if (targetSoulData.lives == 2) {
                     Bukkit.getOfflinePlayer(targetSoulData.player1).player?.let { player ->
-                        SkinManager.getNormalSkin(player.name) {
+                        SkinManager.getNormalSkin(player.name, player.uniqueId) {
                             player.setSkins(it)
                         }
                     }
                     Bukkit.getOfflinePlayer(targetSoulData.player2).player?.let { player ->
-                        SkinManager.getNormalSkin(player.name) {
+                        SkinManager.getNormalSkin(player.name, player.uniqueId) {
                             player.setSkins(it)
                         }
                     }

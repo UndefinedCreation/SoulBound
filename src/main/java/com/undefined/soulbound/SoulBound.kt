@@ -43,9 +43,9 @@ class SoulBound : JavaPlugin() {
         CONFIG = this.config
         saveDefaultConfig()
 
-//        val service = server.servicesManager.load(BukkitVoicechatService::class.java) ?: throw IllegalStateException("HELP ME")
-//        voiceChat = VoiceChatImpl()
-//        service.registerPlugin(voiceChat)
+        val service = server.servicesManager.load(BukkitVoicechatService::class.java) ?: throw IllegalStateException("HELP ME")
+        voiceChat = VoiceChatImpl()
+        service.registerPlugin(voiceChat)
 
         sendDebug("Main | Creating Folders")
         ANIMATION_FOLDER = File(dataFolder, "animation").apply { mkdir() }
